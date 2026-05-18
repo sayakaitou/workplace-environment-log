@@ -117,7 +117,10 @@
     }
 
     input[type="date"], textarea {
+      display: block;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: #fffdf8;
@@ -130,6 +133,9 @@
       min-height: 48px;
       padding: 10px 12px;
       font-size: 16px;
+      line-height: 1.2;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     textarea {
