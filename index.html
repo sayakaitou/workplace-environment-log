@@ -563,7 +563,7 @@
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。メールアドレスとパスワードの新規登録は不要です。</p>
       <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;">Googleでログイン</button>
-      <div id="authMessage" class="auth-message">確認用バージョン：v15 / Googleリダイレクトログイン版</div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v16 / Googleポップアップログイン版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -1252,7 +1252,7 @@
     }
 
     function googleLogin() {
-      showMessage("Googleログインへ移動します。");
+      showMessage("Googleログイン画面を開いています。");
       if (!auth) {
         showMessage("Firebaseの初期化が完了していません。ページを再読み込みしてください。" );
         return;
@@ -1260,8 +1260,18 @@
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
-        return auth.signInWithRedirect(provider);
+        return auth.signInWithPopup(provider);
+      }).then(function () {
+        showMessage("ログインしました。同期データを読み込んでいます。");
       }).catch(function (error) {
+        if (error && error.code === "auth/popup-blocked") {
+          showMessage("ポップアップがブロックされました。Safariやブラウザのポップアップブロックを解除してから、もう一度お試しください。");
+          return;
+        }
+        if (error && error.code === "auth/popup-closed-by-user") {
+          showMessage("Googleログイン画面が閉じられました。もう一度お試しください。");
+          return;
+        }
         showMessage(firebaseErrorMessage(error));
       });
     }
@@ -1284,10 +1294,6 @@
         showMessage("Firebase初期化エラー：" + error.message);
         return;
       }
-
-      auth.getRedirectResult().catch(function (error) {
-        showMessage(firebaseErrorMessage(error));
-      });
 
       auth.onAuthStateChanged(function (user) {
         if (user) {
