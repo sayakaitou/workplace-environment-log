@@ -1197,7 +1197,8 @@
         csvLines.push(csvRow.join(","));
       }
 
-      var blob = new Blob(["\ufeff" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      var blob = new Blob(["﻿" + csvLines.join("
+")], { type: "text/csv;charset=utf-8;" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
