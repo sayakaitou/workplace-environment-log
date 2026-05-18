@@ -715,8 +715,15 @@
         provider.setCustomParameters({ prompt: "select_account" });
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
           return auth.signInWithPopup(provider);
-        }).then(function () {
-          writeAuthMessage("ログインしました。データを読み込んでいます。");
+        }).then(function (result) {
+          writeAuthMessage("ログインしました。アプリ画面を開いています。");
+          if (result && result.user) {
+            enterAppAfterLogin(result.user);
+          } else if (auth.currentUser) {
+            enterAppAfterLogin(auth.currentUser);
+          } else {
+            writeAuthMessage("ログインは完了しましたが、ユーザー情報を取得できませんでした。ページを再読み込みしてください。");
+          }
         }).catch(function (error) {
           writeAuthMessage(firebaseErrorMessage(error));
         });
@@ -1247,7 +1254,7 @@
             items: normalizeItems(DEFAULT_ITEMS),
             clientUpdatedAt: new Date().toISOString(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true }).catch(function (error) { alert(firebaseErrorMessage(error)); });
+          }, { merge: true }).catch(function (error) { writeAuthMessage(firebaseErrorMessage(error)); });
           return;
         }
         var data = doc.data() || {};
@@ -1256,14 +1263,14 @@
         dataReady = true;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) { alert(firebaseErrorMessage(error)); });
+      }, function (error) { writeAuthMessage(firebaseErrorMessage(error)); });
       unsubscribeRecords = recordsCollection().onSnapshot(function (snapshot) {
         var nextRecords = {};
         snapshot.forEach(function (doc) { nextRecords[doc.id] = doc.data() || {}; });
         records = nextRecords;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) { alert(firebaseErrorMessage(error)); });
+      }, function (error) { writeAuthMessage(firebaseErrorMessage(error)); });
     }
 
     function stopListeners() {
@@ -1275,26 +1282,32 @@
 
     function logout() { auth.signOut(); }
 
+    function enterAppAfterLogin(user) {
+      if (!user) return;
+      currentUser = user;
+      elements.authScreen.classList.add("hidden");
+      elements.appScreen.classList.remove("hidden");
+      elements.userEmail.textContent = user.email || "Googleアカウントでログイン中";
+      startListeners(user);
+    }
+
+    function showLoginScreen() {
+      stopListeners();
+      currentUser = null;
+      dataReady = false;
+      items = [];
+      records = {};
+      selectedItems = [];
+      elements.authScreen.classList.remove("hidden");
+      elements.appScreen.classList.add("hidden");
+    }
+
     function setupAuthWatcher() {
       if (!firebaseReady) setupFirebaseCore();
       if (!auth) return;
       auth.onAuthStateChanged(function (user) {
-        if (user) {
-          currentUser = user;
-          elements.authScreen.classList.add("hidden");
-          elements.appScreen.classList.remove("hidden");
-          elements.userEmail.textContent = user.email || "Googleアカウントでログイン中";
-          startListeners(user);
-        } else {
-          stopListeners();
-          currentUser = null;
-          dataReady = false;
-          items = [];
-          records = {};
-          selectedItems = [];
-          elements.authScreen.classList.remove("hidden");
-          elements.appScreen.classList.add("hidden");
-        }
+        if (user) enterAppAfterLogin(user);
+        else showLoginScreen();
       });
     }
 
