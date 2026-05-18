@@ -67,6 +67,8 @@
       font-size: 15px;
     }
 
+    .hidden { display: none !important; }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -113,9 +115,7 @@
       line-height: 1.55;
     }
 
-    .hidden { display: none !important; }
-
-    label.input-label, label.date-label {
+    label.date-label {
       display: block;
       font-size: 13px;
       font-weight: 700;
@@ -123,7 +123,7 @@
       margin-bottom: 6px;
     }
 
-    input[type="date"], textarea, input[type="text"], input[type="email"], input[type="password"] {
+    input[type="date"], textarea, input[type="text"] {
       display: block;
       width: 100%;
       max-width: 100%;
@@ -145,8 +145,8 @@
       appearance: none;
     }
 
-    input[type="text"], input[type="email"], input[type="password"] {
-      min-height: 46px;
+    input[type="text"] {
+      min-height: 44px;
       padding: 10px 12px;
       font-size: 15px;
     }
@@ -159,18 +159,22 @@
       margin-top: 12px;
     }
 
-    .field-group {
-      display: grid;
-      gap: 8px;
-      margin-top: 12px;
+    button {
+      min-height: 48px;
+      border: none;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
     }
 
-    .auth-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 14px;
-    }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .primary { color: #fff; background: var(--green-dark); }
+    .secondary { color: var(--green-dark); background: rgba(111, 143, 114, 0.16); }
+    .danger { color: #fff; background: var(--red); }
 
     .auth-message {
       min-height: 20px;
@@ -209,6 +213,15 @@
       white-space: nowrap;
     }
 
+    .manage-btn {
+      min-height: 38px;
+      padding: 0 13px;
+      background: rgba(120, 149, 166, 0.16);
+      color: var(--text);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     .check-list {
       display: grid;
       gap: 9px;
@@ -225,11 +238,8 @@
       gap: 10px;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
       user-select: none;
     }
-
-    .check-item:active { transform: scale(0.99); }
 
     .check-item.checked {
       border-color: rgba(111, 143, 114, 0.8);
@@ -276,32 +286,6 @@
       background: linear-gradient(to top, var(--bg) 70%, rgba(244, 241, 234, 0));
       z-index: 5;
       margin-top: 6px;
-    }
-
-    button {
-      min-height: 48px;
-      border: none;
-      border-radius: 999px;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.12s ease, opacity 0.12s ease;
-    }
-
-    button:active { transform: scale(0.98); }
-    button:disabled { opacity: 0.55; cursor: not-allowed; }
-
-    .primary { color: #fff; background: var(--green-dark); }
-    .secondary { color: var(--green-dark); background: rgba(111, 143, 114, 0.16); }
-    .danger { color: #fff; background: var(--red); }
-
-    .manage-btn {
-      min-height: 38px;
-      padding: 0 13px;
-      background: rgba(120, 149, 166, 0.16);
-      color: var(--text);
-      font-size: 12px;
-      white-space: nowrap;
     }
 
     .period-tabs {
@@ -572,17 +556,14 @@
     <header>
       <p class="eyebrow">WORKPLACE ENVIRONMENT LOG</p>
       <h1>勤務環境ログ</h1>
-      <p class="lead">その日の職場環境や出来事を、スマホで短く記録できます。PCとiPhoneで同じアカウントにログインすると、項目と記録が自動同期されます。</p>
+      <p class="lead">その日の職場環境や出来事を、スマホで短く記録できます。PCとiPhoneで同じGoogleアカウントにログインすると、項目と記録が自動同期されます。</p>
     </header>
 
     <section id="authScreen" class="card auth-card">
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。メールアドレスとパスワードの新規登録は不要です。</p>
-
-      <div class="auth-actions" style="grid-template-columns:1fr;">
-        <button type="button" id="googleLoginBtn" class="primary" onclick="alert('Googleログインボタンは押せています'); if (window.googleLogin) { window.googleLogin(); } else { alert('Googleログイン処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">Googleでログイン</button>
-      </div>
-      <div id="authMessage" class="auth-message">確認用バージョン：v13 / Googleログイン版</div>
+      <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;">Googleでログイン</button>
+      <div id="authMessage" class="auth-message">確認用バージョン：v15 / Googleリダイレクトログイン版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -598,7 +579,7 @@
         <section class="card">
           <div class="section-title">
             <h2>今日の記録</h2>
-            <button type="button" class="manage-btn" id="openItemSettingsBtn" onclick="openItemSettings()">項目を変更する</button>
+            <button type="button" class="manage-btn" id="openItemSettingsBtn">項目を変更する</button>
           </div>
 
           <label class="date-label" for="recordDate">記録日</label>
@@ -694,51 +675,22 @@
       { id: "good-support", title: "助かった配慮・支援があった", desc: "説明、声かけ、業務調整など、助けになる対応があった", active: true }
     ];
 
-    var app;
-    var auth;
-    var db;
+    var app = null;
+    var auth = null;
+    var db = null;
     var currentUser = null;
     var unsubscribeSettings = null;
     var unsubscribeRecords = null;
 
-    var authScreen;
-    var appScreen;
-    var authEmail;
-    var authPassword;
-    var authMessage;
-    var loginBtn;
-    var signupBtn;
-    var googleLoginBtn;
-    var logoutBtn;
-    var userEmail;
-    var syncStatus;
-    var recordDate;
-    var checkList;
-    var memo;
-    var saveBtn;
-    var clearDayBtn;
-    var overallRate;
-    var totalChecks;
-    var bars;
-    var history;
-    var periodLabel;
-    var toast;
-    var alertModal;
-    var alertList;
-    var closeModalBtn;
-    var exportBtn;
-    var itemModal;
-    var itemEditorList;
-    var addItemBtn;
-    var cancelItemsBtn;
-    var saveItemsBtn;
-
+    var elements = {};
     var items = [];
     var records = {};
     var editingItems = [];
     var selectedItems = [];
     var currentPeriod = "day";
     var dataReady = false;
+
+    function $(id) { return document.getElementById(id); }
 
     function todayString() {
       var now = new Date();
@@ -803,6 +755,41 @@
       return result;
     }
 
+    function showMessage(message) {
+      if (elements.authMessage) elements.authMessage.textContent = message;
+    }
+
+    function showToast(message) {
+      elements.toast.textContent = message;
+      elements.toast.classList.add("show");
+      setTimeout(function () { elements.toast.classList.remove("show"); }, 1800);
+    }
+
+    function firebaseErrorMessage(error) {
+      var code = error && error.code ? error.code : "";
+      if (code === "auth/unauthorized-domain") return "このURLのドメインがFirebaseで許可されていません。Authenticationの承認済みドメインを確認してください。";
+      if (code === "auth/operation-not-allowed") return "Firebase AuthenticationでGoogleログインが有効になっていません。Sign-in methodでGoogleを有効化してください。";
+      if (code === "auth/network-request-failed") return "通信エラーです。ネットワーク接続を確認してください。";
+      if (code === "permission-denied") return "Firestoreの権限エラーです。セキュリティルールを確認してください。";
+      return "エラー：" + (error && error.message ? error.message : code);
+    }
+
+    function setSyncStatus(text) {
+      if (elements.syncStatus) elements.syncStatus.textContent = text;
+    }
+
+    function userDoc() {
+      return db.collection("users").doc(currentUser.uid);
+    }
+
+    function settingsDoc() {
+      return userDoc().collection("settings").doc("app");
+    }
+
+    function recordsCollection() {
+      return userDoc().collection("records");
+    }
+
     function getActiveItems() {
       var result = [];
       for (var i = 0; i < items.length; i++) {
@@ -823,54 +810,29 @@
       return item && item.active !== false;
     }
 
-    function userDoc() {
-      return db.collection("users").doc(currentUser.uid);
+    function getRecordItemTitle(record, id) {
+      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title) return record.itemSnapshots[id].title;
+      var item = findItemById(id);
+      return item && item.title ? item.title : id;
     }
 
-    function settingsDoc() {
-      return userDoc().collection("settings").doc("app");
-    }
-
-    function recordsCollection() {
-      return userDoc().collection("records");
-    }
-
-    function setSyncStatus(text) {
-      if (syncStatus) syncStatus.textContent = text;
-    }
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(function () { toast.classList.remove("show"); }, 1800);
-    }
-
-    function firebaseErrorMessage(error) {
-      var code = error && error.code ? error.code : "";
-      if (code === "auth/invalid-email") return "メールアドレスの形式が正しくありません。";
-      if (code === "auth/missing-password") return "パスワードを入力してください。";
-      if (code === "auth/weak-password") return "パスワードは6文字以上にしてください。";
-      if (code === "auth/email-already-in-use") return "このメールアドレスはすでに登録されています。ログインを試してください。";
-      if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") return "メールアドレスまたはパスワードが違います。";
-      if (code === "auth/popup-blocked") return "ポップアップがブロックされました。Safariやブラウザのポップアップ許可設定を確認してください。";
-      if (code === "auth/popup-closed-by-user") return "Googleログイン画面が閉じられました。もう一度お試しください。";
-      if (code === "auth/cancelled-popup-request") return "ログイン処理が重複しました。少し待ってから、もう一度お試しください。";
-      if (code === "auth/unauthorized-domain") return "このURLのドメインがFirebaseで許可されていません。Authenticationの承認済みドメインを確認してください。";
-      if (code === "permission-denied") return "Firestoreの権限エラーです。セキュリティルールを確認してください。";
-      return "エラーが発生しました：" + (error && error.message ? error.message : code);
+    function getRecordItemDesc(record, id) {
+      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].desc) return record.itemSnapshots[id].desc;
+      var item = findItemById(id);
+      return item && item.desc ? item.desc : "";
     }
 
     function renderCheckList() {
       var activeItems = getActiveItems();
-      checkList.innerHTML = "";
+      elements.checkList.innerHTML = "";
 
       if (!dataReady) {
-        checkList.innerHTML = '<div class="empty">同期データを読み込み中です。</div>';
+        elements.checkList.innerHTML = '<div class="empty">同期データを読み込み中です。</div>';
         return;
       }
 
       if (activeItems.length === 0) {
-        checkList.innerHTML = '<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>';
+        elements.checkList.innerHTML = '<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>';
         return;
       }
 
@@ -889,7 +851,7 @@
           }
           syncCheckVisuals();
         };
-        checkList.appendChild(row);
+        elements.checkList.appendChild(row);
       }
       syncCheckVisuals();
     }
@@ -907,37 +869,21 @@
       }
     }
 
-    function getRecordItemTitle(record, id) {
-      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title) {
-        return record.itemSnapshots[id].title;
-      }
-      var item = findItemById(id);
-      return item && item.title ? item.title : id;
-    }
-
-    function getRecordItemDesc(record, id) {
-      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].desc) {
-        return record.itemSnapshots[id].desc;
-      }
-      var item = findItemById(id);
-      return item && item.desc ? item.desc : "";
-    }
-
     function loadDateRecord() {
-      var record = records[recordDate.value];
+      var record = records[elements.recordDate.value];
       selectedItems = [];
       if (record && Array.isArray(record.items)) {
         for (var i = 0; i < record.items.length; i++) {
           if (itemIsActive(record.items[i])) selectedItems.push(record.items[i]);
         }
       }
-      memo.value = record && record.memo ? record.memo : "";
+      elements.memo.value = record && record.memo ? record.memo : "";
       syncCheckVisuals();
       renderDashboard();
     }
 
     function getPeriodDates() {
-      var base = parseDate(recordDate.value || todayString());
+      var base = parseDate(elements.recordDate.value || todayString());
       var days = currentPeriod === "day" ? 1 : currentPeriod === "week" ? 7 : 30;
       var result = [];
       for (var i = days - 1; i >= 0; i--) result.push(formatDate(addDays(base, -i)));
@@ -947,19 +893,13 @@
     function getDashboardItems(periodRecords) {
       var result = getActiveItems().slice();
       var addedIds = result.map(function (item) { return item.id; });
-
       for (var i = 0; i < periodRecords.length; i++) {
         var record = periodRecords[i];
         var recordItems = record && Array.isArray(record.items) ? record.items : [];
         for (var j = 0; j < recordItems.length; j++) {
           var id = recordItems[j];
           if (includes(addedIds, id)) continue;
-          result.push({
-            id: id,
-            title: getRecordItemTitle(record, id),
-            desc: getRecordItemDesc(record, id),
-            active: false
-          });
+          result.push({ id: id, title: getRecordItemTitle(record, id), desc: getRecordItemDesc(record, id), active: false });
           addedIds.push(id);
         }
       }
@@ -974,7 +914,6 @@
       var dashboardItems = getDashboardItems(periodRecords);
       var displayIds = dashboardItems.map(function (item) { return item.id; });
       var total = 0;
-
       for (var r = 0; r < periodRecords.length; r++) {
         var recordItems = periodRecords[r] && Array.isArray(periodRecords[r].items) ? periodRecords[r].items : [];
         for (var k = 0; k < recordItems.length; k++) {
@@ -984,13 +923,13 @@
 
       var possibleChecks = dates.length * Math.max(dashboardItems.length, 1);
       var rate = Math.round((total / possibleChecks) * 100);
-      overallRate.textContent = rate + "%";
-      totalChecks.textContent = String(total);
-      periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
+      elements.overallRate.textContent = rate + "%";
+      elements.totalChecks.textContent = String(total);
+      elements.periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
+      elements.bars.innerHTML = "";
 
-      bars.innerHTML = "";
       if (dashboardItems.length === 0) {
-        bars.innerHTML = '<div class="empty">表示できる項目がありません。</div>';
+        elements.bars.innerHTML = '<div class="empty">表示できる項目がありません。</div>';
       } else {
         for (var b = 0; b < dashboardItems.length; b++) {
           var item = dashboardItems[b];
@@ -1003,7 +942,7 @@
           var row = document.createElement("div");
           row.className = "bar-row";
           row.innerHTML = '<div class="bar-top"><div class="bar-name">' + escapeHtml(item.title) + (item.active === false ? '<span class="past-label">過去項目</span>' : '') + '</div><div class="bar-value">' + checkedDays + '/' + dates.length + '日・' + itemRate + '%</div></div><div class="bar-track"><div class="bar-fill" style="width:' + itemRate + '%"></div></div>';
-          bars.appendChild(row);
+          elements.bars.appendChild(row);
         }
       }
       renderHistory();
@@ -1011,24 +950,22 @@
 
     function renderHistory() {
       var entries = Object.keys(records).sort().reverse().slice(0, 8);
-
       if (entries.length === 0) {
-        history.innerHTML = '<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>';
+        elements.history.innerHTML = '<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>';
         return;
       }
 
-      history.innerHTML = "";
+      elements.history.innerHTML = "";
       for (var i = 0; i < entries.length; i++) {
         var date = entries[i];
         var record = records[date];
         var names = [];
         var recordItems = record && Array.isArray(record.items) ? record.items : [];
         for (var j = 0; j < recordItems.length; j++) names.push(getRecordItemTitle(record, recordItems[j]));
-
         var div = document.createElement("div");
         div.className = "history-item";
         div.innerHTML = '<div class="history-date">' + escapeHtml(date) + '</div><div class="history-text">' + (names.length ? names.map(escapeHtml).join(" / ") : "チェックなし") + '</div>' + (record && record.memo ? '<div class="history-text">メモ：' + escapeHtml(record.memo) + '</div>' : '');
-        history.appendChild(div);
+        elements.history.appendChild(div);
       }
     }
 
@@ -1048,27 +985,25 @@
 
     function showThresholdAlert(triggeredItems) {
       if (!triggeredItems || triggeredItems.length === 0) return;
-      alertList.innerHTML = "";
+      elements.alertList.innerHTML = "";
       for (var i = 0; i < triggeredItems.length; i++) {
         var li = document.createElement("li");
         li.textContent = triggeredItems[i].title + "：累計" + triggeredItems[i].count + "回";
-        alertList.appendChild(li);
+        elements.alertList.appendChild(li);
       }
-      alertModal.classList.add("show");
+      elements.alertModal.classList.add("show");
     }
 
     function saveRecord() {
       if (!currentUser) return;
-      var date = recordDate.value || todayString();
+      var date = elements.recordDate.value || todayString();
       var beforeCounts = countByItem(records);
       var existingRecord = records[date] || { items: [], itemSnapshots: {} };
       var preservedOldItems = [];
       var oldItems = existingRecord && Array.isArray(existingRecord.items) ? existingRecord.items : [];
-
       for (var i = 0; i < oldItems.length; i++) {
         if (!itemIsActive(oldItems[i])) preservedOldItems.push(oldItems[i]);
       }
-
       var finalItems = unique(preservedOldItems.concat(selectedItems));
       var snapshots = existingRecord.itemSnapshots || {};
       for (var j = 0; j < finalItems.length; j++) {
@@ -1079,43 +1014,41 @@
         }
       }
 
-      saveBtn.disabled = true;
+      elements.saveBtn.disabled = true;
       setSyncStatus("保存中");
       recordsCollection().doc(date).set({
         items: finalItems,
         itemSnapshots: snapshots,
-        memo: memo.value.trim(),
+        memo: elements.memo.value.trim(),
         clientUpdatedAt: new Date().toISOString(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(function () {
         var simulatedRecords = JSON.parse(JSON.stringify(records));
-        simulatedRecords[date] = { items: finalItems, itemSnapshots: snapshots, memo: memo.value.trim() };
+        simulatedRecords[date] = { items: finalItems, itemSnapshots: snapshots, memo: elements.memo.value.trim() };
         var afterCounts = countByItem(simulatedRecords);
         var triggered = [];
         for (var k = 0; k < items.length; k++) {
           var itemObj = items[k];
           var before = beforeCounts[itemObj.id] || 0;
           var after = afterCounts[itemObj.id] || 0;
-          if (after > before && after >= 10 && after % 10 === 0) {
-            triggered.push({ title: itemObj.title, count: after });
-          }
+          if (after > before && after >= 10 && after % 10 === 0) triggered.push({ title: itemObj.title, count: after });
         }
         showToast("保存しました");
         showThresholdAlert(triggered);
       }).catch(function (error) {
         alert(firebaseErrorMessage(error));
-      }).finally(function () {
-        saveBtn.disabled = false;
+      }).then(function () {
+        elements.saveBtn.disabled = false;
         setSyncStatus("同期中");
       });
     }
 
     function clearCurrentDay() {
       if (!currentUser) return;
-      var date = recordDate.value;
+      var date = elements.recordDate.value;
       recordsCollection().doc(date).delete().then(function () {
         selectedItems = [];
-        memo.value = "";
+        elements.memo.value = "";
         syncCheckVisuals();
         renderDashboard();
         showToast("この日の記録を削除しました");
@@ -1134,7 +1067,7 @@
     }
 
     function readEditorValues() {
-      var editors = itemEditorList.querySelectorAll(".item-editor");
+      var editors = elements.itemEditorList.querySelectorAll(".item-editor");
       for (var i = 0; i < editors.length; i++) {
         var titleInput = editors[i].querySelector("input[data-field='title']");
         var descInput = editors[i].querySelector("textarea[data-field='desc']");
@@ -1146,16 +1079,16 @@
     }
 
     function renderItemEditor() {
-      itemEditorList.innerHTML = "";
+      elements.itemEditorList.innerHTML = "";
       for (var i = 0; i < editingItems.length; i++) {
         var item = editingItems[i];
         var div = document.createElement("div");
         div.className = "item-editor";
         div.innerHTML = '<div class="editor-header"><span class="status-badge ' + (item.active === false ? 'off' : '') + '">' + (item.active === false ? '非表示' : '表示中') + '</span><button type="button" class="mini-btn" data-index="' + i + '">' + (item.active === false ? '表示に戻す' : '非表示にする') + '</button></div><label class="editor-label">項目名<input type="text" data-field="title" value="' + escapeHtml(item.title) + '" /></label><label class="editor-label">説明<textarea data-field="desc">' + escapeHtml(item.desc) + '</textarea></label>';
-        itemEditorList.appendChild(div);
+        elements.itemEditorList.appendChild(div);
       }
 
-      var buttons = itemEditorList.querySelectorAll("button[data-index]");
+      var buttons = elements.itemEditorList.querySelectorAll("button[data-index]");
       for (var j = 0; j < buttons.length; j++) {
         buttons[j].onclick = function () {
           readEditorValues();
@@ -1168,13 +1101,9 @@
 
     function openItemSettings() {
       if (!currentUser) return;
-      try {
-        editingItems = JSON.parse(JSON.stringify(items));
-        renderItemEditor();
-        itemModal.classList.add("show");
-      } catch (error) {
-        alert("項目変更画面を開けませんでした。ページを再読み込みしてから、もう一度お試しください。原因: " + error.message);
-      }
+      editingItems = JSON.parse(JSON.stringify(items));
+      renderItemEditor();
+      elements.itemModal.classList.add("show");
     }
 
     function addNewItem() {
@@ -1188,24 +1117,18 @@
       readEditorValues();
       var nextItems = [];
       var now = new Date().toISOString();
-
       for (var i = 0; i < editingItems.length; i++) {
         var edited = normalizeItem(editingItems[i]);
         var old = null;
-        for (var j = 0; j < items.length; j++) {
-          if (items[j].id === edited.id) old = items[j];
-        }
-
+        for (var j = 0; j < items.length; j++) if (items[j].id === edited.id) old = items[j];
         if (!old) {
           edited.createdAt = now;
           edited.updatedAt = now;
           nextItems.push(edited);
           continue;
         }
-
         var textChanged = old.title !== edited.title || old.desc !== edited.desc;
         var used = itemUsedInRecords(old.id);
-
         if (textChanged && used) {
           var oldCopy = normalizeItem(old);
           oldCopy.active = false;
@@ -1219,18 +1142,18 @@
         }
       }
 
-      saveItemsBtn.disabled = true;
+      elements.saveItemsBtn.disabled = true;
       settingsDoc().set({
         items: nextItems,
         clientUpdatedAt: now,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true }).then(function () {
-        itemModal.classList.remove("show");
+        elements.itemModal.classList.remove("show");
         showToast("項目を反映しました");
       }).catch(function (error) {
         alert(firebaseErrorMessage(error));
-      }).finally(function () {
-        saveItemsBtn.disabled = false;
+      }).then(function () {
+        elements.saveItemsBtn.disabled = false;
       });
     }
 
@@ -1238,7 +1161,6 @@
       var allItems = items.slice();
       var knownIds = allItems.map(function (item) { return item.id; });
       var dates = Object.keys(records);
-
       for (var i = 0; i < dates.length; i++) {
         var record = records[dates[i]];
         var recordItems = record && Array.isArray(record.items) ? record.items : [];
@@ -1255,7 +1177,6 @@
       for (var h = 0; h < allItems.length; h++) header.push(allItems[h].title);
       header.push("memo");
       header.push("updatedAt");
-
       var rows = [header];
       dates.sort();
       for (var d = 0; d < dates.length; d++) {
@@ -1272,14 +1193,11 @@
       var csvLines = [];
       for (var r = 0; r < rows.length; r++) {
         var csvRow = [];
-        for (var col = 0; col < rows[r].length; col++) {
-          csvRow.push('"' + String(rows[r][col]).replace(/"/g, '""') + '"');
-        }
+        for (var col = 0; col < rows[r].length; col++) csvRow.push('"' + String(rows[r][col]).replace(/"/g, '""') + '"');
         csvLines.push(csvRow.join(","));
       }
 
-      var blob = new Blob(["﻿" + csvLines.join("
-")], { type: "text/csv;charset=utf-8;" });
+      var blob = new Blob(["\ufeff" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
@@ -1305,33 +1223,24 @@
             items: normalizeItems(DEFAULT_ITEMS),
             clientUpdatedAt: new Date().toISOString(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true }).catch(function (error) {
-            alert(firebaseErrorMessage(error));
-          });
+          }, { merge: true }).catch(function (error) { alert(firebaseErrorMessage(error)); });
           return;
         }
-
         var data = doc.data() || {};
         items = normalizeItems(data.items);
         if (items.length === 0) items = normalizeItems(DEFAULT_ITEMS);
         dataReady = true;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) {
-        alert(firebaseErrorMessage(error));
-      });
+      }, function (error) { alert(firebaseErrorMessage(error)); });
 
       unsubscribeRecords = recordsCollection().onSnapshot(function (snapshot) {
         var nextRecords = {};
-        snapshot.forEach(function (doc) {
-          nextRecords[doc.id] = doc.data() || {};
-        });
+        snapshot.forEach(function (doc) { nextRecords[doc.id] = doc.data() || {}; });
         records = nextRecords;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) {
-        alert(firebaseErrorMessage(error));
-      });
+      }, function (error) { alert(firebaseErrorMessage(error)); });
     }
 
     function stopListeners() {
@@ -1342,64 +1251,49 @@
     }
 
     function googleLogin() {
-      try {
-        authMessage.textContent = "Googleログイン画面を開いています。";
-        if (!auth) {
-          authMessage.textContent = "Firebaseの初期化が完了していません。ページを再読み込みしてください。";
-          return;
-        }
-        if (googleLoginBtn) googleLoginBtn.disabled = true;
-        var provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-        auth.signInWithPopup(provider)
-          .catch(function (error) {
-            authMessage.textContent = firebaseErrorMessage(error);
-          })
-          .finally(function () {
-            if (googleLoginBtn) googleLoginBtn.disabled = false;
-          });
-      } catch (error) {
-        authMessage.textContent = "Googleログイン処理でエラーが発生しました：" + error.message;
-        if (googleLoginBtn) googleLoginBtn.disabled = false;
+      showMessage("Googleログインへ移動します。");
+      if (!auth) {
+        showMessage("Firebaseの初期化が完了していません。ページを再読み込みしてください。" );
+        return;
       }
+      var provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
+        return auth.signInWithRedirect(provider);
+      }).catch(function (error) {
+        showMessage(firebaseErrorMessage(error));
+      });
     }
 
     function logout() {
       auth.signOut();
     }
 
-    function closeItemModal() {
-      itemModal.classList.remove("show");
-    }
-
     function initFirebase() {
       if (!window.firebase) {
-        authMessage.textContent = "Firebaseの読み込みに失敗しました。iPhoneの通信環境、コンテンツブロッカー、プライベートブラウズ設定を確認してください。";
+        showMessage("Firebaseの読み込みに失敗しました。通信環境やコンテンツブロッカーを確認してください。");
         return;
       }
       try {
-        if (!firebase.apps.length) {
-          app = firebase.initializeApp(firebaseConfig);
-        } else {
-          app = firebase.app();
-        }
+        if (!firebase.apps.length) app = firebase.initializeApp(firebaseConfig);
+        else app = firebase.app();
         auth = firebase.auth();
         db = firebase.firestore();
       } catch (error) {
-        authMessage.textContent = "Firebase初期化エラー：" + error.message;
+        showMessage("Firebase初期化エラー：" + error.message);
         return;
       }
 
-      try {
-        db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
-      } catch (error) {}
+      auth.getRedirectResult().catch(function (error) {
+        showMessage(firebaseErrorMessage(error));
+      });
 
       auth.onAuthStateChanged(function (user) {
         if (user) {
           currentUser = user;
-          authScreen.classList.add("hidden");
-          appScreen.classList.remove("hidden");
-          userEmail.textContent = user.email || "ログイン中";
+          elements.authScreen.classList.add("hidden");
+          elements.appScreen.classList.remove("hidden");
+          elements.userEmail.textContent = user.email || "Googleアカウントでログイン中";
           startListeners(user);
         } else {
           stopListeners();
@@ -1408,65 +1302,57 @@
           items = [];
           records = {};
           selectedItems = [];
-          authScreen.classList.remove("hidden");
-          appScreen.classList.add("hidden");
+          elements.authScreen.classList.remove("hidden");
+          elements.appScreen.classList.add("hidden");
         }
       });
     }
 
     function init() {
-      authScreen = document.getElementById("authScreen");
-      appScreen = document.getElementById("appScreen");
-      authEmail = document.getElementById("authEmail");
-      authPassword = document.getElementById("authPassword");
-      authMessage = document.getElementById("authMessage");
-      loginBtn = document.getElementById("loginBtn");
-      signupBtn = document.getElementById("signupBtn");
-      googleLoginBtn = document.getElementById("googleLoginBtn");
-      logoutBtn = document.getElementById("logoutBtn");
-      userEmail = document.getElementById("userEmail");
-      syncStatus = document.getElementById("syncStatus");
-      recordDate = document.getElementById("recordDate");
-      checkList = document.getElementById("checkList");
-      memo = document.getElementById("memo");
-      saveBtn = document.getElementById("saveBtn");
-      clearDayBtn = document.getElementById("clearDayBtn");
-      overallRate = document.getElementById("overallRate");
-      totalChecks = document.getElementById("totalChecks");
-      bars = document.getElementById("bars");
-      history = document.getElementById("history");
-      periodLabel = document.getElementById("periodLabel");
-      toast = document.getElementById("toast");
-      alertModal = document.getElementById("alertModal");
-      alertList = document.getElementById("alertList");
-      closeModalBtn = document.getElementById("closeModalBtn");
-      exportBtn = document.getElementById("exportBtn");
-      itemModal = document.getElementById("itemModal");
-      itemEditorList = document.getElementById("itemEditorList");
-      addItemBtn = document.getElementById("addItemBtn");
-      cancelItemsBtn = document.getElementById("cancelItemsBtn");
-      saveItemsBtn = document.getElementById("saveItemsBtn");
+      elements.authScreen = $("authScreen");
+      elements.appScreen = $("appScreen");
+      elements.authMessage = $("authMessage");
+      elements.googleLoginBtn = $("googleLoginBtn");
+      elements.logoutBtn = $("logoutBtn");
+      elements.userEmail = $("userEmail");
+      elements.syncStatus = $("syncStatus");
+      elements.recordDate = $("recordDate");
+      elements.checkList = $("checkList");
+      elements.memo = $("memo");
+      elements.saveBtn = $("saveBtn");
+      elements.clearDayBtn = $("clearDayBtn");
+      elements.overallRate = $("overallRate");
+      elements.totalChecks = $("totalChecks");
+      elements.bars = $("bars");
+      elements.history = $("history");
+      elements.periodLabel = $("periodLabel");
+      elements.toast = $("toast");
+      elements.alertModal = $("alertModal");
+      elements.alertList = $("alertList");
+      elements.closeModalBtn = $("closeModalBtn");
+      elements.exportBtn = $("exportBtn");
+      elements.itemModal = $("itemModal");
+      elements.itemEditorList = $("itemEditorList");
+      elements.addItemBtn = $("addItemBtn");
+      elements.cancelItemsBtn = $("cancelItemsBtn");
+      elements.saveItemsBtn = $("saveItemsBtn");
+      elements.openItemSettingsBtn = $("openItemSettingsBtn");
 
-      recordDate.value = todayString();
+      elements.recordDate.value = todayString();
       renderCheckList();
       renderDashboard();
 
-      if (googleLoginBtn) googleLoginBtn.onclick = googleLogin;
-      logoutBtn.onclick = logout;
-      recordDate.onchange = loadDateRecord;
-      saveBtn.onclick = saveRecord;
-      clearDayBtn.onclick = clearCurrentDay;
-      closeModalBtn.onclick = function () { alertModal.classList.remove("show"); };
-      exportBtn.onclick = exportCsv;
-      addItemBtn.onclick = addNewItem;
-      cancelItemsBtn.onclick = closeItemModal;
-      saveItemsBtn.onclick = saveItemChanges;
-
-      if (authPassword) {
-        authPassword.onkeydown = function (event) {
-          if (event.key === "Enter") login();
-        };
-      }
+      elements.googleLoginBtn.onclick = googleLogin;
+      elements.logoutBtn.onclick = logout;
+      elements.recordDate.onchange = loadDateRecord;
+      elements.saveBtn.onclick = saveRecord;
+      elements.clearDayBtn.onclick = clearCurrentDay;
+      elements.closeModalBtn.onclick = function () { elements.alertModal.classList.remove("show"); };
+      elements.exportBtn.onclick = exportCsv;
+      elements.openItemSettingsBtn.onclick = openItemSettings;
+      elements.addItemBtn.onclick = addNewItem;
+      elements.cancelItemsBtn.onclick = function () { elements.itemModal.classList.remove("show"); };
+      elements.saveItemsBtn.onclick = saveItemChanges;
 
       var periodButtons = document.querySelectorAll(".tab[data-period]");
       for (var i = 0; i < periodButtons.length; i++) {
@@ -1478,24 +1364,20 @@
         };
       }
 
-      alertModal.onclick = function (event) {
-        if (event.target === alertModal) alertModal.classList.remove("show");
+      elements.alertModal.onclick = function (event) {
+        if (event.target === elements.alertModal) elements.alertModal.classList.remove("show");
       };
-      itemModal.onclick = function (event) {
-        if (event.target === itemModal) itemModal.classList.remove("show");
+      elements.itemModal.onclick = function (event) {
+        if (event.target === elements.itemModal) elements.itemModal.classList.remove("show");
       };
 
       initFirebase();
     }
 
-    window.openItemSettings = openItemSettings;
     window.googleLogin = googleLogin;
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
   </script>
 </body>
 </html>
