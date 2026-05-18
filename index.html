@@ -564,7 +564,7 @@
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。</p>
       <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;" onclick="startGoogleLogin()">Googleでログイン</button>
-      <div id="authMessage" class="auth-message">確認用バージョン：v21 / 同期状態表示修正版</div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v22 / 初期項目即時表示修正版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -1282,49 +1282,62 @@
     function startListeners(user) {
       stopListeners();
       currentUser = user;
-      dataReady = false;
-      items = [];
+      dataReady = true;
+      items = normalizeItems(DEFAULT_ITEMS);
       records = {};
       selectedItems = [];
       renderCheckList();
       renderDashboard();
-      setSyncStatus("同期準備中");
-      setTimeout(function () {
-        if (currentUser && !dataReady) {
-          setSyncStatus("同期確認中");
-        }
-      }, 3000);
-      unsubscribeSettings = settingsDoc().onSnapshot(function (doc) {
+      setSyncStatus("同期確認中");
+
+      if (!db) {
+        setSyncStatus("同期エラー");
+        writeAuthMessage("Firestoreの初期化が完了していません。ページを再読み込みしてください。");
+        return;
+      }
+
+      settingsDoc().get().then(function (doc) {
         if (!doc.exists) {
-          var defaultItems = normalizeItems(DEFAULT_ITEMS);
-          items = defaultItems;
-          dataReady = true;
-          loadDateRecord();
-          setSyncStatus("同期中");
-          settingsDoc().set({
-            items: defaultItems,
+          return settingsDoc().set({
+            items: normalizeItems(DEFAULT_ITEMS),
             clientUpdatedAt: new Date().toISOString(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true }).catch(function (error) {
-            setSyncStatus("同期エラー");
-            writeAuthMessage(firebaseErrorMessage(error));
-          });
-          return;
+          }, { merge: true });
         }
-        var data = doc.data() || {};
-        items = normalizeItems(data.items);
-        if (items.length === 0) items = normalizeItems(DEFAULT_ITEMS);
+        return null;
+      }).catch(function (error) {
+        setSyncStatus("同期エラー");
+        writeAuthMessage(firebaseErrorMessage(error));
+      });
+
+      unsubscribeSettings = settingsDoc().onSnapshot(function (doc) {
+        if (doc.exists) {
+          var data = doc.data() || {};
+          var loadedItems = normalizeItems(data.items);
+          items = loadedItems.length > 0 ? loadedItems : normalizeItems(DEFAULT_ITEMS);
+        } else {
+          items = normalizeItems(DEFAULT_ITEMS);
+        }
         dataReady = true;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) { writeAuthMessage(firebaseErrorMessage(error)); });
+      }, function (error) {
+        setSyncStatus("同期エラー");
+        writeAuthMessage(firebaseErrorMessage(error));
+      });
+
       unsubscribeRecords = recordsCollection().onSnapshot(function (snapshot) {
         var nextRecords = {};
-        snapshot.forEach(function (doc) { nextRecords[doc.id] = doc.data() || {}; });
+        snapshot.forEach(function (doc) {
+          nextRecords[doc.id] = doc.data() || {};
+        });
         records = nextRecords;
         loadDateRecord();
         setSyncStatus("同期中");
-      }, function (error) { writeAuthMessage(firebaseErrorMessage(error)); });
+      }, function (error) {
+        setSyncStatus("同期エラー");
+        writeAuthMessage(firebaseErrorMessage(error));
+      });
     }
 
     function stopListeners() {
