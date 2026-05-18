@@ -576,24 +576,13 @@
     </header>
 
     <section id="authScreen" class="card auth-card">
-      <h2 style="margin:0 0 8px;">ログイン</h2>
-      <p class="small">PCとiPhoneで同じメールアドレス・パスワードを使うと、記録内容が同期されます。初回は「新規登録」を押してください。</p>
+      <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
+      <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。メールアドレスとパスワードの新規登録は不要です。</p>
 
-      <div class="field-group">
-        <label class="input-label" for="authEmail">メールアドレス</label>
-        <input id="authEmail" type="email" autocomplete="email" placeholder="example@example.com" />
+      <div class="auth-actions" style="grid-template-columns:1fr;">
+        <button type="button" id="googleLoginBtn" class="primary" onclick="googleLogin()">Googleでログイン</button>
       </div>
-
-      <div class="field-group">
-        <label class="input-label" for="authPassword">パスワード</label>
-        <input id="authPassword" type="password" autocomplete="current-password" placeholder="6文字以上" />
-      </div>
-
-      <div class="auth-actions">
-        <button type="button" id="loginBtn" class="primary" onclick="alert('ログインボタンは押せています'); if (window.login) { window.login(); } else { alert('ログイン処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">ログイン</button>
-        <button type="button" id="signupBtn" class="secondary" onclick="alert('新規登録ボタンは押せています'); if (window.signup) { window.signup(); } else { alert('新規登録処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">新規登録</button>
-      </div>
-      <div id="authMessage" class="auth-message">確認用バージョン：v12</div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v13 / Googleログイン版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -719,6 +708,7 @@
     var authMessage;
     var loginBtn;
     var signupBtn;
+    var googleLoginBtn;
     var logoutBtn;
     var userEmail;
     var syncStatus;
@@ -862,6 +852,10 @@
       if (code === "auth/weak-password") return "パスワードは6文字以上にしてください。";
       if (code === "auth/email-already-in-use") return "このメールアドレスはすでに登録されています。ログインを試してください。";
       if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") return "メールアドレスまたはパスワードが違います。";
+      if (code === "auth/popup-blocked") return "ポップアップがブロックされました。Safariやブラウザのポップアップ許可設定を確認してください。";
+      if (code === "auth/popup-closed-by-user") return "Googleログイン画面が閉じられました。もう一度お試しください。";
+      if (code === "auth/cancelled-popup-request") return "ログイン処理が重複しました。少し待ってから、もう一度お試しください。";
+      if (code === "auth/unauthorized-domain") return "このURLのドメインがFirebaseで許可されていません。Authenticationの承認済みドメインを確認してください。";
       if (code === "permission-denied") return "Firestoreの権限エラーです。セキュリティルールを確認してください。";
       return "エラーが発生しました：" + (error && error.message ? error.message : code);
     }
@@ -1347,71 +1341,26 @@
       unsubscribeRecords = null;
     }
 
-    function login() {
+    function googleLogin() {
       try {
-        authMessage.textContent = "";
+        authMessage.textContent = "Googleログイン画面を開いています。";
         if (!auth) {
           authMessage.textContent = "Firebaseの初期化が完了していません。ページを再読み込みしてください。";
           return;
         }
-        if (!authEmail.value.trim()) {
-          authMessage.textContent = "メールアドレスを入力してください。";
-          return;
-        }
-        if (!authPassword.value) {
-          authMessage.textContent = "パスワードを入力してください。";
-          return;
-        }
-        loginBtn.disabled = true;
-        signupBtn.disabled = true;
-        auth.signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
+        if (googleLoginBtn) googleLoginBtn.disabled = true;
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        auth.signInWithPopup(provider)
           .catch(function (error) {
             authMessage.textContent = firebaseErrorMessage(error);
           })
           .finally(function () {
-            loginBtn.disabled = false;
-            signupBtn.disabled = false;
+            if (googleLoginBtn) googleLoginBtn.disabled = false;
           });
       } catch (error) {
-        authMessage.textContent = "ログイン処理でエラーが発生しました：" + error.message;
-        loginBtn.disabled = false;
-        signupBtn.disabled = false;
-      }
-    }
-
-    function signup() {
-      try {
-        authMessage.textContent = "";
-        if (!auth) {
-          authMessage.textContent = "Firebaseの初期化が完了していません。ページを再読み込みしてください。";
-          return;
-        }
-        if (!authEmail.value.trim()) {
-          authMessage.textContent = "メールアドレスを入力してください。";
-          return;
-        }
-        if (!authPassword.value) {
-          authMessage.textContent = "パスワードを入力してください。";
-          return;
-        }
-        if (authPassword.value.length < 6) {
-          authMessage.textContent = "パスワードは6文字以上にしてください。";
-          return;
-        }
-        loginBtn.disabled = true;
-        signupBtn.disabled = true;
-        auth.createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-          .catch(function (error) {
-            authMessage.textContent = firebaseErrorMessage(error);
-          })
-          .finally(function () {
-            loginBtn.disabled = false;
-            signupBtn.disabled = false;
-          });
-      } catch (error) {
-        authMessage.textContent = "新規登録処理でエラーが発生しました：" + error.message;
-        loginBtn.disabled = false;
-        signupBtn.disabled = false;
+        authMessage.textContent = "Googleログイン処理でエラーが発生しました：" + error.message;
+        if (googleLoginBtn) googleLoginBtn.disabled = false;
       }
     }
 
@@ -1473,6 +1422,7 @@
       authMessage = document.getElementById("authMessage");
       loginBtn = document.getElementById("loginBtn");
       signupBtn = document.getElementById("signupBtn");
+      googleLoginBtn = document.getElementById("googleLoginBtn");
       logoutBtn = document.getElementById("logoutBtn");
       userEmail = document.getElementById("userEmail");
       syncStatus = document.getElementById("syncStatus");
@@ -1501,8 +1451,9 @@
       renderCheckList();
       renderDashboard();
 
-      loginBtn.onclick = login;
-      signupBtn.onclick = signup;
+      if (loginBtn) loginBtn.onclick = login;
+      if (signupBtn) signupBtn.onclick = signup;
+      if (googleLoginBtn) googleLoginBtn.onclick = googleLogin;
       logoutBtn.onclick = logout;
       recordDate.onchange = loadDateRecord;
       saveBtn.onclick = saveRecord;
@@ -1513,9 +1464,11 @@
       cancelItemsBtn.onclick = closeItemModal;
       saveItemsBtn.onclick = saveItemChanges;
 
-      authPassword.onkeydown = function (event) {
-        if (event.key === "Enter") login();
-      };
+      if (authPassword) {
+        authPassword.onkeydown = function (event) {
+          if (event.key === "Enter") login();
+        };
+      }
 
       var periodButtons = document.querySelectorAll(".tab[data-period]");
       for (var i = 0; i < periodButtons.length; i++) {
@@ -1540,6 +1493,7 @@
     window.openItemSettings = openItemSettings;
     window.login = login;
     window.signup = signup;
+    window.googleLogin = googleLogin;
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", init);
