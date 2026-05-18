@@ -14,15 +14,12 @@
       --green: #6f8f72;
       --green-dark: #4f6f52;
       --blue: #7895a6;
-      --yellow: #d8b66a;
       --red: #b9796c;
       --shadow: 0 14px 30px rgba(41, 50, 58, 0.12);
       --radius: 22px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -41,9 +38,7 @@
       padding: 18px 14px 90px;
     }
 
-    header {
-      padding: 20px 6px 18px;
-    }
+    header { padding: 20px 6px 18px; }
 
     .eyebrow {
       margin: 0 0 8px;
@@ -108,6 +103,15 @@
       line-height: 1.55;
     }
 
+    .manage-btn {
+      min-height: 36px;
+      padding: 0 12px;
+      background: rgba(120, 149, 166, 0.16);
+      color: var(--text);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     label.date-label {
       display: block;
       font-size: 13px;
@@ -116,7 +120,7 @@
       margin-bottom: 6px;
     }
 
-    input[type="date"], textarea {
+    input[type="date"], textarea, input[type="text"] {
       display: block;
       width: 100%;
       max-width: 100%;
@@ -136,6 +140,12 @@
       line-height: 1.2;
       -webkit-appearance: none;
       appearance: none;
+    }
+
+    input[type="text"] {
+      min-height: 44px;
+      padding: 10px 12px;
+      font-size: 15px;
     }
 
     textarea {
@@ -166,9 +176,7 @@
       user-select: none;
     }
 
-    .check-item:active {
-      transform: scale(0.99);
-    }
+    .check-item:active { transform: scale(0.99); }
 
     .check-item.checked {
       border-color: rgba(111, 143, 114, 0.8);
@@ -227,24 +235,11 @@
       transition: transform 0.12s ease, opacity 0.12s ease;
     }
 
-    button:active {
-      transform: scale(0.98);
-    }
+    button:active { transform: scale(0.98); }
 
-    .primary {
-      color: #fff;
-      background: var(--green-dark);
-    }
-
-    .secondary {
-      color: var(--green-dark);
-      background: rgba(111, 143, 114, 0.16);
-    }
-
-    .danger {
-      color: #fff;
-      background: var(--red);
-    }
+    .primary { color: #fff; background: var(--green-dark); }
+    .secondary { color: var(--green-dark); background: rgba(111, 143, 114, 0.16); }
+    .danger { color: #fff; background: var(--red); }
 
     .period-tabs {
       display: grid;
@@ -260,10 +255,7 @@
       font-size: 13px;
     }
 
-    .tab.active {
-      background: var(--blue);
-      color: #fff;
-    }
+    .tab.active { background: var(--blue); color: #fff; }
 
     .summary {
       display: grid;
@@ -291,15 +283,8 @@
       margin-top: 4px;
     }
 
-    .bars {
-      display: grid;
-      gap: 13px;
-    }
-
-    .bar-row {
-      display: grid;
-      gap: 6px;
-    }
+    .bars { display: grid; gap: 13px; }
+    .bar-row { display: grid; gap: 6px; }
 
     .bar-top {
       display: flex;
@@ -310,8 +295,14 @@
       line-height: 1.4;
     }
 
-    .bar-name {
-      font-weight: 750;
+    .bar-name { font-weight: 750; }
+
+    .past-label {
+      display: inline-block;
+      margin-left: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
     }
 
     .bar-value {
@@ -396,18 +387,20 @@
       z-index: 30;
     }
 
-    .modal-backdrop.show {
-      display: flex;
-    }
+    .modal-backdrop.show { display: flex; }
 
     .modal {
       width: min(100%, 420px);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
       background: var(--card);
       border-radius: 26px;
       padding: 18px;
       box-shadow: var(--shadow);
       border: 1px solid var(--line);
     }
+
+    .item-modal { width: min(100%, 680px); }
 
     .modal h3 {
       margin: 0 0 8px;
@@ -429,9 +422,74 @@
       font-size: 14px;
     }
 
-    .modal .primary {
-      width: 100%;
-      margin-top: 16px;
+    .full { width: 100%; margin-top: 16px; }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .item-editor-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .item-editor {
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(111, 143, 114, 0.16);
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status-badge.off {
+      background: rgba(185, 121, 108, 0.14);
+      color: var(--red);
+    }
+
+    .mini-btn {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+      background: rgba(120, 149, 166, 0.16);
+      color: var(--text);
+    }
+
+    .editor-label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .item-editor textarea {
+      min-height: 72px;
+      margin-top: 0;
+      font-size: 14px;
     }
 
     .empty {
@@ -458,7 +516,7 @@
       <section class="card">
         <div class="section-title">
           <h2>今日の記録</h2>
-          <span class="small">該当するものをタップ</span>
+          <button class="manage-btn" id="openItemSettingsBtn">項目を変更する</button>
         </div>
 
         <label class="date-label" for="recordDate">記録日</label>
@@ -515,54 +573,36 @@
       <h3>チェック数が節目に到達しました</h3>
       <p>同じ項目の累計チェックが10回単位に到達しました。必要に応じて、記録内容を振り返ってください。</p>
       <ul id="alertList"></ul>
-      <button id="closeModalBtn" class="primary">閉じる</button>
+      <button id="closeModalBtn" class="primary full">閉じる</button>
+    </div>
+  </div>
+
+  <div id="itemModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal item-modal">
+      <h3>記録項目を変更する</h3>
+      <p>項目名と説明を自由に変更できます。使わなくなった項目は「非表示」にしてください。毎日の記録画面からは外れますが、過去に記録した項目は1日・1週間・1か月の集計、最近の記録、CSVに残ります。</p>
+      <div id="itemEditorList" class="item-editor-list"></div>
+      <button id="addItemBtn" class="secondary" style="width:100%; margin-top:14px;">＋ 項目を追加する</button>
+      <div class="modal-actions">
+        <button id="cancelItemsBtn" class="secondary">閉じる</button>
+        <button id="saveItemsBtn" class="primary">反映する</button>
+      </div>
     </div>
   </div>
 
   <script>
     const STORAGE_KEY = "workplace_environment_records_v1";
+    const ITEMS_KEY = "workplace_environment_items_v1";
 
-    const ITEMS = [
-      {
-        id: "info-gap",
-        title: "必要な情報共有がなかった",
-        desc: "業務に必要な説明・資料・背景情報が不足していた"
-      },
-      {
-        id: "sudden-change",
-        title: "急な業務変更・指示変更があった",
-        desc: "事前説明が少ないまま、予定や担当業務が変わった"
-      },
-      {
-        id: "unclear-role",
-        title: "役割・責任範囲があいまいだった",
-        desc: "自分がどこまで対応すべきか分かりにくかった"
-      },
-      {
-        id: "pressure",
-        title: "強い言い方・圧を感じる対応があった",
-        desc: "威圧的、否定的、過度に責めるような言動があった"
-      },
-      {
-        id: "isolation",
-        title: "相談・確認しづらい状況があった",
-        desc: "質問しづらい、確認相手がいない、返答が得にくい状況だった"
-      },
-      {
-        id: "workload",
-        title: "業務量・納期に無理があった",
-        desc: "時間内に処理するには負荷が高い、または急ぎすぎる依頼だった"
-      },
-      {
-        id: "health-load",
-        title: "心身への負担が大きかった",
-        desc: "強い疲労、緊張、動悸、頭痛、集中困難などを感じた"
-      },
-      {
-        id: "good-support",
-        title: "助かった配慮・支援があった",
-        desc: "説明、声かけ、業務調整など、助けになる対応があった"
-      }
+    const DEFAULT_ITEMS = [
+      { id: "info-gap", title: "必要な情報共有がなかった", desc: "業務に必要な説明・資料・背景情報が不足していた", active: true, createdAt: "default" },
+      { id: "sudden-change", title: "急な業務変更・指示変更があった", desc: "事前説明が少ないまま、予定や担当業務が変わった", active: true, createdAt: "default" },
+      { id: "unclear-role", title: "役割・責任範囲があいまいだった", desc: "自分がどこまで対応すべきか分かりにくかった", active: true, createdAt: "default" },
+      { id: "pressure", title: "強い言い方・圧を感じる対応があった", desc: "威圧的、否定的、過度に責めるような言動があった", active: true, createdAt: "default" },
+      { id: "isolation", title: "相談・確認しづらい状況があった", desc: "質問しづらい、確認相手がいない、返答が得にくい状況だった", active: true, createdAt: "default" },
+      { id: "workload", title: "業務量・納期に無理があった", desc: "時間内に処理するには負荷が高い、または急ぎすぎる依頼だった", active: true, createdAt: "default" },
+      { id: "health-load", title: "心身への負担が大きかった", desc: "強い疲労、緊張、動悸、頭痛、集中困難などを感じた", active: true, createdAt: "default" },
+      { id: "good-support", title: "助かった配慮・支援があった", desc: "説明、声かけ、業務調整など、助けになる対応があった", active: true, createdAt: "default" }
     ];
 
     const recordDate = document.getElementById("recordDate");
@@ -581,16 +621,21 @@
     const alertList = document.getElementById("alertList");
     const closeModalBtn = document.getElementById("closeModalBtn");
     const exportBtn = document.getElementById("exportBtn");
+    const openItemSettingsBtn = document.getElementById("openItemSettingsBtn");
+    const itemModal = document.getElementById("itemModal");
+    const itemEditorList = document.getElementById("itemEditorList");
+    const addItemBtn = document.getElementById("addItemBtn");
+    const cancelItemsBtn = document.getElementById("cancelItemsBtn");
+    const saveItemsBtn = document.getElementById("saveItemsBtn");
 
+    let items = getItems();
+    let editingItems = [];
     let selectedItems = new Set();
     let currentPeriod = "day";
 
     function todayString() {
       const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const dd = String(now.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     }
 
     function parseDate(value) {
@@ -599,16 +644,17 @@
     }
 
     function formatDate(date) {
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, "0");
-      const dd = String(date.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     }
 
     function addDays(date, days) {
       const copy = new Date(date);
       copy.setDate(copy.getDate() + days);
       return copy;
+    }
+
+    function makeItemId() {
+      return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     function getRecords() {
@@ -623,8 +669,72 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     }
 
+    function normalizeItem(item) {
+      return {
+        id: item.id || makeItemId(),
+        title: String(item.title || "名称未設定").trim() || "名称未設定",
+        desc: String(item.desc || "").trim(),
+        active: item.active !== false,
+        createdAt: item.createdAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || new Date().toISOString()
+      };
+    }
+
+    function getItems() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(ITEMS_KEY));
+        if (Array.isArray(saved) && saved.length > 0) return saved.map(normalizeItem);
+      } catch (error) {}
+
+      const defaults = DEFAULT_ITEMS.map(normalizeItem);
+      localStorage.setItem(ITEMS_KEY, JSON.stringify(defaults));
+      return defaults;
+    }
+
+    function setItems(nextItems) {
+      localStorage.setItem(ITEMS_KEY, JSON.stringify(nextItems.map(normalizeItem)));
+    }
+
+    function getActiveItems() {
+      return items.filter(item => item.active !== false);
+    }
+
+    function getItemMap(sourceItems = items) {
+      return Object.fromEntries(sourceItems.map(item => [item.id, item]));
+    }
+
+    function getUsedItemIds(records = getRecords()) {
+      const used = new Set();
+      Object.values(records).forEach(record => {
+        (record.items || []).forEach(id => used.add(id));
+      });
+      return used;
+    }
+
+    function freezeAllRecordSnapshots(baseItems) {
+      const records = getRecords();
+      const itemMap = getItemMap(baseItems);
+      let changed = false;
+
+      Object.values(records).forEach(record => {
+        if (!record.itemSnapshots) record.itemSnapshots = {};
+        (record.items || []).forEach(id => {
+          if (!record.itemSnapshots[id]) {
+            const item = itemMap[id];
+            record.itemSnapshots[id] = {
+              title: item?.title || id,
+              desc: item?.desc || ""
+            };
+            changed = true;
+          }
+        });
+      });
+
+      if (changed) setRecords(records);
+    }
+
     function countByItem(records) {
-      const counts = Object.fromEntries(ITEMS.map(item => [item.id, 0]));
+      const counts = {};
       Object.values(records).forEach(record => {
         (record.items || []).forEach(id => {
           counts[id] = (counts[id] || 0) + 1;
@@ -633,25 +743,35 @@
       return counts;
     }
 
+    function getRecordItemTitle(record, id) {
+      if (record?.itemSnapshots?.[id]?.title) return record.itemSnapshots[id].title;
+      const item = items.find(candidate => candidate.id === id);
+      return item?.title || id;
+    }
+
     function renderCheckList() {
+      const activeItems = getActiveItems();
       checkList.innerHTML = "";
-      ITEMS.forEach(item => {
+
+      if (activeItems.length === 0) {
+        checkList.innerHTML = `<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>`;
+        return;
+      }
+
+      activeItems.forEach(item => {
         const row = document.createElement("div");
         row.className = "check-item";
         row.dataset.id = item.id;
         row.innerHTML = `
           <div class="box"></div>
           <div>
-            <div class="item-title">${item.title}</div>
-            <div class="item-desc">${item.desc}</div>
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="item-desc">${escapeHtml(item.desc)}</div>
           </div>
         `;
         row.addEventListener("click", () => {
-          if (selectedItems.has(item.id)) {
-            selectedItems.delete(item.id);
-          } else {
-            selectedItems.add(item.id);
-          }
+          if (selectedItems.has(item.id)) selectedItems.delete(item.id);
+          else selectedItems.add(item.id);
           syncCheckVisuals();
         });
         checkList.appendChild(row);
@@ -670,7 +790,8 @@
     function loadDateRecord() {
       const records = getRecords();
       const record = records[recordDate.value];
-      selectedItems = new Set(record?.items || []);
+      const activeIds = new Set(getActiveItems().map(item => item.id));
+      selectedItems = new Set((record?.items || []).filter(id => activeIds.has(id)));
       memo.value = record?.memo || "";
       syncCheckVisuals();
       renderDashboard();
@@ -680,47 +801,70 @@
       const base = parseDate(recordDate.value || todayString());
       const days = currentPeriod === "day" ? 1 : currentPeriod === "week" ? 7 : 30;
       const dates = [];
-      for (let i = days - 1; i >= 0; i--) {
-        dates.push(formatDate(addDays(base, -i)));
-      }
+      for (let i = days - 1; i >= 0; i--) dates.push(formatDate(addDays(base, -i)));
       return dates;
+    }
+
+    function getDashboardItems(periodRecords) {
+      const result = [...getActiveItems()];
+      const addedIds = new Set(result.map(item => item.id));
+
+      periodRecords.forEach(record => {
+        (record.items || []).forEach(id => {
+          if (addedIds.has(id)) return;
+          const currentItem = items.find(item => item.id === id);
+          result.push({
+            id,
+            title: record.itemSnapshots?.[id]?.title || currentItem?.title || id,
+            desc: record.itemSnapshots?.[id]?.desc || currentItem?.desc || "",
+            active: false
+          });
+          addedIds.add(id);
+        });
+      });
+
+      return result;
     }
 
     function renderDashboard() {
       const records = getRecords();
       const dates = getPeriodDates();
       const periodRecords = dates.map(date => records[date] || { items: [] });
-      const possibleChecks = dates.length * ITEMS.length;
-      const total = periodRecords.reduce((sum, record) => sum + (record.items || []).length, 0);
-      const rate = possibleChecks === 0 ? 0 : Math.round((total / possibleChecks) * 100);
+      const dashboardItems = getDashboardItems(periodRecords);
+      const displayIds = new Set(dashboardItems.map(item => item.id));
+      const possibleChecks = dates.length * Math.max(dashboardItems.length, 1);
+      const total = periodRecords.reduce((sum, record) => sum + (record.items || []).filter(id => displayIds.has(id)).length, 0);
+      const rate = Math.round((total / possibleChecks) * 100);
 
       overallRate.textContent = `${rate}%`;
       totalChecks.textContent = String(total);
       periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
 
       bars.innerHTML = "";
-      ITEMS.forEach(item => {
-        const checkedDays = periodRecords.filter(record => (record.items || []).includes(item.id)).length;
-        const itemRate = Math.round((checkedDays / dates.length) * 100);
-        const row = document.createElement("div");
-        row.className = "bar-row";
-        row.innerHTML = `
-          <div class="bar-top">
-            <div class="bar-name">${item.title}</div>
-            <div class="bar-value">${checkedDays}/${dates.length}日・${itemRate}%</div>
-          </div>
-          <div class="bar-track"><div class="bar-fill" style="width:${itemRate}%"></div></div>
-        `;
-        bars.appendChild(row);
-      });
+      if (dashboardItems.length === 0) {
+        bars.innerHTML = `<div class="empty">表示できる項目がありません。</div>`;
+      } else {
+        dashboardItems.forEach(item => {
+          const checkedDays = periodRecords.filter(record => (record.items || []).includes(item.id)).length;
+          const itemRate = Math.round((checkedDays / dates.length) * 100);
+          const row = document.createElement("div");
+          row.className = "bar-row";
+          row.innerHTML = `
+            <div class="bar-top">
+              <div class="bar-name">${escapeHtml(item.title)}${item.active === false ? `<span class="past-label">過去項目</span>` : ""}</div>
+              <div class="bar-value">${checkedDays}/${dates.length}日・${itemRate}%</div>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${itemRate}%"></div></div>
+          `;
+          bars.appendChild(row);
+        });
+      }
 
       renderHistory(records);
     }
 
     function renderHistory(records) {
-      const entries = Object.entries(records)
-        .sort((a, b) => b[0].localeCompare(a[0]))
-        .slice(0, 8);
+      const entries = Object.entries(records).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 8);
 
       if (entries.length === 0) {
         history.innerHTML = `<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>`;
@@ -729,14 +873,12 @@
 
       history.innerHTML = "";
       entries.forEach(([date, record]) => {
-        const names = (record.items || [])
-          .map(id => ITEMS.find(item => item.id === id)?.title)
-          .filter(Boolean);
+        const names = (record.items || []).map(id => getRecordItemTitle(record, id));
         const div = document.createElement("div");
         div.className = "history-item";
         div.innerHTML = `
           <div class="history-date">${date}</div>
-          <div class="history-text">${names.length ? names.join(" / ") : "チェックなし"}</div>
+          <div class="history-text">${names.length ? names.map(escapeHtml).join(" / ") : "チェックなし"}</div>
           ${record.memo ? `<div class="history-text">メモ：${escapeHtml(record.memo)}</div>` : ""}
         `;
         history.appendChild(div);
@@ -773,21 +915,34 @@
       const date = recordDate.value || todayString();
       const records = getRecords();
       const beforeCounts = countByItem(records);
+      const existingRecord = records[date] || { items: [], itemSnapshots: {} };
+      const activeIds = new Set(getActiveItems().map(item => item.id));
+      const preservedOldItems = (existingRecord.items || []).filter(id => !activeIds.has(id));
+      const finalItems = Array.from(new Set([...preservedOldItems, ...Array.from(selectedItems)]));
+      const itemMap = getItemMap(items);
+      const itemSnapshots = { ...(existingRecord.itemSnapshots || {}) };
+
+      finalItems.forEach(id => {
+        if (!itemSnapshots[id]) {
+          const item = itemMap[id];
+          itemSnapshots[id] = {
+            title: item?.title || id,
+            desc: item?.desc || ""
+          };
+        }
+      });
 
       records[date] = {
-        items: Array.from(selectedItems),
+        items: finalItems,
+        itemSnapshots,
         memo: memo.value.trim(),
         updatedAt: new Date().toISOString()
       };
       setRecords(records);
 
       const afterCounts = countByItem(records);
-      const triggered = ITEMS
-        .map(item => ({
-          title: item.title,
-          before: beforeCounts[item.id] || 0,
-          count: afterCounts[item.id] || 0
-        }))
+      const triggered = items
+        .map(item => ({ title: item.title, before: beforeCounts[item.id] || 0, count: afterCounts[item.id] || 0 }))
         .filter(item => item.count > item.before && item.count >= 10 && item.count % 10 === 0);
 
       showToast("保存しました");
@@ -806,26 +961,125 @@
       showToast("この日の記録を削除しました");
     }
 
+    function renderItemEditor() {
+      itemEditorList.innerHTML = "";
+      editingItems.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "item-editor";
+        div.innerHTML = `
+          <div class="editor-header">
+            <span class="status-badge ${item.active === false ? "off" : ""}">${item.active === false ? "非表示" : "表示中"}</span>
+            <button class="mini-btn" data-action="toggle" data-index="${index}">${item.active === false ? "表示に戻す" : "非表示にする"}</button>
+          </div>
+          <label class="editor-label">項目名
+            <input type="text" data-field="title" data-index="${index}" value="${escapeHtml(item.title)}" />
+          </label>
+          <label class="editor-label">説明
+            <textarea data-field="desc" data-index="${index}">${escapeHtml(item.desc)}</textarea>
+          </label>
+        `;
+        itemEditorList.appendChild(div);
+      });
+    }
+
+    function openItemEditor() {
+      freezeAllRecordSnapshots(items);
+      editingItems = JSON.parse(JSON.stringify(items));
+      renderItemEditor();
+      itemModal.classList.add("show");
+    }
+
+    function readEditorValues() {
+      itemEditorList.querySelectorAll("input[data-field], textarea[data-field]").forEach(input => {
+        const index = Number(input.dataset.index);
+        const field = input.dataset.field;
+        editingItems[index][field] = input.value;
+      });
+    }
+
+    function saveItemChanges() {
+      readEditorValues();
+      freezeAllRecordSnapshots(items);
+
+      const records = getRecords();
+      const usedIds = getUsedItemIds(records);
+      const oldById = getItemMap(items);
+      const nextItems = [];
+      const addedOldIds = new Set();
+      const now = new Date().toISOString();
+
+      editingItems.forEach(raw => {
+        const edited = normalizeItem(raw);
+        const old = oldById[edited.id];
+
+        if (!old) {
+          nextItems.push({ ...edited, id: edited.id || makeItemId(), createdAt: now, updatedAt: now });
+          return;
+        }
+
+        const textChanged = old.title !== edited.title || old.desc !== edited.desc;
+        const hasPastRecords = usedIds.has(old.id);
+
+        if (textChanged && hasPastRecords) {
+          if (!addedOldIds.has(old.id)) {
+            nextItems.push({ ...old, active: false, updatedAt: now });
+            addedOldIds.add(old.id);
+          }
+          nextItems.push({
+            id: makeItemId(),
+            title: edited.title,
+            desc: edited.desc,
+            active: edited.active,
+            createdAt: now,
+            updatedAt: now
+          });
+        } else {
+          nextItems.push({ ...old, title: edited.title, desc: edited.desc, active: edited.active, updatedAt: now });
+        }
+      });
+
+      items = nextItems.map(normalizeItem);
+      setItems(items);
+      itemModal.classList.remove("show");
+      selectedItems = new Set(Array.from(selectedItems).filter(id => getActiveItems().some(item => item.id === id)));
+      renderCheckList();
+      renderDashboard();
+      showToast("項目を反映しました");
+    }
+
     function exportCsv() {
       const records = getRecords();
-      const header = ["date", ...ITEMS.map(item => item.title), "memo", "updatedAt"];
+      const allItems = [...items];
+      const knownIds = new Set(allItems.map(item => item.id));
+
+      Object.values(records).forEach(record => {
+        (record.items || []).forEach(id => {
+          if (!knownIds.has(id)) {
+            allItems.push({
+              id,
+              title: record.itemSnapshots?.[id]?.title || id,
+              desc: record.itemSnapshots?.[id]?.desc || "",
+              active: false
+            });
+            knownIds.add(id);
+          }
+        });
+      });
+
+      const header = ["date", ...allItems.map(item => item.title), "memo", "updatedAt"];
       const rows = Object.entries(records)
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([date, record]) => {
           const checked = new Set(record.items || []);
-          return [
-            date,
-            ...ITEMS.map(item => checked.has(item.id) ? "1" : "0"),
-            record.memo || "",
-            record.updatedAt || ""
-          ];
+          return [date, ...allItems.map(item => checked.has(item.id) ? "1" : "0"), record.memo || "", record.updatedAt || ""];
         });
 
       const csv = [header, ...rows]
         .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(","))
-        .join("\n");
+        .join("
+");
 
-      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -843,16 +1097,40 @@
       });
     });
 
+    itemEditorList.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action='toggle']");
+      if (!button) return;
+      readEditorValues();
+      const index = Number(button.dataset.index);
+      editingItems[index].active = editingItems[index].active === false;
+      renderItemEditor();
+    });
+
+    addItemBtn.addEventListener("click", () => {
+      readEditorValues();
+      editingItems.push({
+        id: makeItemId(),
+        title: "新しい項目",
+        desc: "",
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      renderItemEditor();
+    });
+
     recordDate.addEventListener("change", loadDateRecord);
     saveBtn.addEventListener("click", saveRecord);
     clearDayBtn.addEventListener("click", clearCurrentDay);
     closeModalBtn.addEventListener("click", () => alertModal.classList.remove("show"));
-    alertModal.addEventListener("click", event => {
-      if (event.target === alertModal) alertModal.classList.remove("show");
-    });
+    alertModal.addEventListener("click", event => { if (event.target === alertModal) alertModal.classList.remove("show"); });
+    openItemSettingsBtn.addEventListener("click", openItemEditor);
+    cancelItemsBtn.addEventListener("click", () => itemModal.classList.remove("show"));
+    saveItemsBtn.addEventListener("click", saveItemChanges);
     exportBtn.addEventListener("click", exportCsv);
 
     recordDate.value = todayString();
+    freezeAllRecordSnapshots(items);
     renderCheckList();
     loadDateRecord();
   </script>
