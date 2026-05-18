@@ -717,13 +717,14 @@
       let changed = false;
 
       Object.values(records).forEach(record => {
+        if (!record || typeof record !== "object") return;
         if (!record.itemSnapshots) record.itemSnapshots = {};
         (record.items || []).forEach(id => {
           if (!record.itemSnapshots[id]) {
             const item = itemMap[id];
             record.itemSnapshots[id] = {
-              title: item?.title || id,
-              desc: item?.desc || ""
+              title: item && item.title ? item.title : id,
+              desc: item && item.desc ? item.desc : ""
             };
             changed = true;
           }
@@ -744,9 +745,11 @@
     }
 
     function getRecordItemTitle(record, id) {
-      if (record?.itemSnapshots?.[id]?.title) return record.itemSnapshots[id].title;
+      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title) {
+        return record.itemSnapshots[id].title;
+      }
       const item = items.find(candidate => candidate.id === id);
-      return item?.title || id;
+      return item && item.title ? item.title : id;
     }
 
     function renderCheckList() {
@@ -791,8 +794,8 @@
       const records = getRecords();
       const record = records[recordDate.value];
       const activeIds = new Set(getActiveItems().map(item => item.id));
-      selectedItems = new Set((record?.items || []).filter(id => activeIds.has(id)));
-      memo.value = record?.memo || "";
+      selectedItems = new Set(((record && record.items) || []).filter(id => activeIds.has(id)));
+      memo.value = record && record.memo ? record.memo : "";
       syncCheckVisuals();
       renderDashboard();
     }
@@ -813,10 +816,11 @@
         (record.items || []).forEach(id => {
           if (addedIds.has(id)) return;
           const currentItem = items.find(item => item.id === id);
+          const snapshot = record.itemSnapshots && record.itemSnapshots[id] ? record.itemSnapshots[id] : null;
           result.push({
             id,
-            title: record.itemSnapshots?.[id]?.title || currentItem?.title || id,
-            desc: record.itemSnapshots?.[id]?.desc || currentItem?.desc || "",
+            title: snapshot && snapshot.title ? snapshot.title : currentItem && currentItem.title ? currentItem.title : id,
+            desc: snapshot && snapshot.desc ? snapshot.desc : currentItem && currentItem.desc ? currentItem.desc : "",
             active: false
           });
           addedIds.add(id);
@@ -887,11 +891,11 @@
 
     function escapeHtml(text) {
       return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     function showToast(message) {
@@ -926,8 +930,8 @@
         if (!itemSnapshots[id]) {
           const item = itemMap[id];
           itemSnapshots[id] = {
-            title: item?.title || id,
-            desc: item?.desc || ""
+            title: item && item.title ? item.title : id,
+            desc: item && item.desc ? item.desc : ""
           };
         }
       });
@@ -1057,8 +1061,8 @@
           if (!knownIds.has(id)) {
             allItems.push({
               id,
-              title: record.itemSnapshots?.[id]?.title || id,
-              desc: record.itemSnapshots?.[id]?.desc || "",
+              title: record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title ? record.itemSnapshots[id].title : id,
+              desc: record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].desc ? record.itemSnapshots[id].desc : "",
               active: false
             });
             knownIds.add(id);
@@ -1075,7 +1079,7 @@
         });
 
       const csv = [header, ...rows]
-        .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(","))
+        .map(row => row.map(value => `"${String(value).replace(/\"/g, '\"\"')}"`).join(","))
         .join("
 ");
 
