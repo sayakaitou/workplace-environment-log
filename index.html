@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>勤務環境ログ</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --card: #fffaf2;
+      --text: #29323a;
+      --muted: #6b7280;
+      --line: #d9d1c3;
+      --green: #6f8f72;
+      --green-dark: #4f6f52;
+      --blue: #7895a6;
+      --yellow: #d8b66a;
+      --red: #b9796c;
+      --shadow: 0 14px 30px rgba(41, 50, 58, 0.12);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(120, 149, 166, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(111, 143, 114, 0.2), transparent 32%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      padding: 18px 14px 90px;
+    }
+
+    header {
+      padding: 20px 6px 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 8vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .lead {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background: rgba(255, 250, 242, 0.9);
+      border: 1px solid rgba(217, 209, 195, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    label.date-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 6px;
+    }
+
+    input[type="date"], textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fffdf8;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    input[type="date"] {
+      min-height: 48px;
+      padding: 10px 12px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 104px;
+      resize: vertical;
+      padding: 12px;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .check-item {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      user-select: none;
+    }
+
+    .check-item:active {
+      transform: scale(0.99);
+    }
+
+    .check-item.checked {
+      border-color: rgba(111, 143, 114, 0.8);
+      background: rgba(111, 143, 114, 0.13);
+    }
+
+    .box {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      border: 2px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      background: #fff;
+    }
+
+    .check-item.checked .box {
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .item-title {
+      font-weight: 750;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .item-desc {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .actions {
+      position: sticky;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, var(--bg) 70%, rgba(244, 241, 234, 0));
+      z-index: 5;
+      margin-top: 6px;
+    }
+
+    button {
+      min-height: 48px;
+      border: none;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .primary {
+      color: #fff;
+      background: var(--green-dark);
+    }
+
+    .secondary {
+      color: var(--green-dark);
+      background: rgba(111, 143, 114, 0.16);
+    }
+
+    .danger {
+      color: #fff;
+      background: var(--red);
+    }
+
+    .period-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      min-height: 40px;
+      background: rgba(120, 149, 166, 0.15);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+    }
+
+    .metric .num {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 13px;
+    }
+
+    .bar-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .bar-name {
+      font-weight: 750;
+    }
+
+    .bar-value {
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .bar-track {
+      height: 13px;
+      background: rgba(217, 209, 195, 0.68);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      border-radius: inherit;
+      transition: width 0.25s ease;
+    }
+
+    .history {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 16px;
+      padding: 11px;
+    }
+
+    .history-date {
+      font-size: 13px;
+      font-weight: 850;
+      color: var(--green-dark);
+    }
+
+    .history-text {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(78px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      background: #29323a;
+      color: #fff;
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-size: 14px;
+      box-shadow: var(--shadow);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 20;
+      width: max-content;
+      max-width: calc(100% - 28px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(41, 50, 58, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 30;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(100%, 420px);
+      background: var(--card);
+      border-radius: 26px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+
+    .modal h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .modal p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .modal ul {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      line-height: 1.65;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .modal .primary {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      background: rgba(255, 253, 248, 0.7);
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <p class="eyebrow">WORKPLACE ENVIRONMENT LOG</p>
+      <h1>勤務環境ログ</h1>
+      <p class="lead">その日の職場環境や出来事を、スマホで短く記録できます。チェックした項目は、1日・1週間・1か月単位で見える化します。</p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="section-title">
+          <h2>今日の記録</h2>
+          <span class="small">該当するものをタップ</span>
+        </div>
+
+        <label class="date-label" for="recordDate">記録日</label>
+        <input id="recordDate" type="date" />
+
+        <div id="checkList" class="check-list"></div>
+
+        <textarea id="memo" placeholder="補足メモ：誰が・いつ・何をしたか、事実ベースで短く記録できます。例）午前10時頃、業務内容の変更について説明がないまま対応を求められた。"></textarea>
+
+        <div class="actions">
+          <button class="secondary" id="clearDayBtn">この日の入力を消す</button>
+          <button class="primary" id="saveBtn">保存する</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>チェック率</h2>
+          <span class="small" id="periodLabel">今日</span>
+        </div>
+
+        <div class="period-tabs">
+          <button class="tab active" data-period="day">1日</button>
+          <button class="tab" data-period="week">1週間</button>
+          <button class="tab" data-period="month">1か月</button>
+        </div>
+
+        <div class="summary">
+          <div class="metric">
+            <div class="num" id="overallRate">0%</div>
+            <div class="label">全体チェック率</div>
+          </div>
+          <div class="metric">
+            <div class="num" id="totalChecks">0</div>
+            <div class="label">期間内チェック数</div>
+          </div>
+        </div>
+
+        <div id="bars" class="bars"></div>
+
+        <div class="section-title" style="margin-top: 18px;">
+          <h2>最近の記録</h2>
+          <button class="tab" id="exportBtn" style="width: 96px;">CSV</button>
+        </div>
+        <div id="history" class="history"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">保存しました</div>
+
+  <div id="alertModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3>チェック数が節目に到達しました</h3>
+      <p>同じ項目の累計チェックが10回単位に到達しました。必要に応じて、記録内容を振り返ってください。</p>
+      <ul id="alertList"></ul>
+      <button id="closeModalBtn" class="primary">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "workplace_environment_records_v1";
+
+    const ITEMS = [
+      {
+        id: "info-gap",
+        title: "必要な情報共有がなかった",
+        desc: "業務に必要な説明・資料・背景情報が不足していた"
+      },
+      {
+        id: "sudden-change",
+        title: "急な業務変更・指示変更があった",
+        desc: "事前説明が少ないまま、予定や担当業務が変わった"
+      },
+      {
+        id: "unclear-role",
+        title: "役割・責任範囲があいまいだった",
+        desc: "自分がどこまで対応すべきか分かりにくかった"
+      },
+      {
+        id: "pressure",
+        title: "強い言い方・圧を感じる対応があった",
+        desc: "威圧的、否定的、過度に責めるような言動があった"
+      },
+      {
+        id: "isolation",
+        title: "相談・確認しづらい状況があった",
+        desc: "質問しづらい、確認相手がいない、返答が得にくい状況だった"
+      },
+      {
+        id: "workload",
+        title: "業務量・納期に無理があった",
+        desc: "時間内に処理するには負荷が高い、または急ぎすぎる依頼だった"
+      },
+      {
+        id: "health-load",
+        title: "心身への負担が大きかった",
+        desc: "強い疲労、緊張、動悸、頭痛、集中困難などを感じた"
+      },
+      {
+        id: "good-support",
+        title: "助かった配慮・支援があった",
+        desc: "説明、声かけ、業務調整など、助けになる対応があった"
+      }
+    ];
+
+    const recordDate = document.getElementById("recordDate");
+    const checkList = document.getElementById("checkList");
+    const memo = document.getElementById("memo");
+    const saveBtn = document.getElementById("saveBtn");
+    const clearDayBtn = document.getElementById("clearDayBtn");
+    const tabs = document.querySelectorAll(".tab[data-period]");
+    const overallRate = document.getElementById("overallRate");
+    const totalChecks = document.getElementById("totalChecks");
+    const bars = document.getElementById("bars");
+    const history = document.getElementById("history");
+    const periodLabel = document.getElementById("periodLabel");
+    const toast = document.getElementById("toast");
+    const alertModal = document.getElementById("alertModal");
+    const alertList = document.getElementById("alertList");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const exportBtn = document.getElementById("exportBtn");
+
+    let selectedItems = new Set();
+    let currentPeriod = "day";
+
+    function todayString() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function parseDate(value) {
+      const [y, m, d] = value.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function formatDate(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function addDays(date, days) {
+      const copy = new Date(date);
+      copy.setDate(copy.getDate() + days);
+      return copy;
+    }
+
+    function getRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function setRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function countByItem(records) {
+      const counts = Object.fromEntries(ITEMS.map(item => [item.id, 0]));
+      Object.values(records).forEach(record => {
+        (record.items || []).forEach(id => {
+          counts[id] = (counts[id] || 0) + 1;
+        });
+      });
+      return counts;
+    }
+
+    function renderCheckList() {
+      checkList.innerHTML = "";
+      ITEMS.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "check-item";
+        row.dataset.id = item.id;
+        row.innerHTML = `
+          <div class="box"></div>
+          <div>
+            <div class="item-title">${item.title}</div>
+            <div class="item-desc">${item.desc}</div>
+          </div>
+        `;
+        row.addEventListener("click", () => {
+          if (selectedItems.has(item.id)) {
+            selectedItems.delete(item.id);
+          } else {
+            selectedItems.add(item.id);
+          }
+          syncCheckVisuals();
+        });
+        checkList.appendChild(row);
+      });
+      syncCheckVisuals();
+    }
+
+    function syncCheckVisuals() {
+      document.querySelectorAll(".check-item").forEach(row => {
+        const isChecked = selectedItems.has(row.dataset.id);
+        row.classList.toggle("checked", isChecked);
+        row.querySelector(".box").textContent = isChecked ? "✓" : "";
+      });
+    }
+
+    function loadDateRecord() {
+      const records = getRecords();
+      const record = records[recordDate.value];
+      selectedItems = new Set(record?.items || []);
+      memo.value = record?.memo || "";
+      syncCheckVisuals();
+      renderDashboard();
+    }
+
+    function getPeriodDates() {
+      const base = parseDate(recordDate.value || todayString());
+      const days = currentPeriod === "day" ? 1 : currentPeriod === "week" ? 7 : 30;
+      const dates = [];
+      for (let i = days - 1; i >= 0; i--) {
+        dates.push(formatDate(addDays(base, -i)));
+      }
+      return dates;
+    }
+
+    function renderDashboard() {
+      const records = getRecords();
+      const dates = getPeriodDates();
+      const periodRecords = dates.map(date => records[date] || { items: [] });
+      const possibleChecks = dates.length * ITEMS.length;
+      const total = periodRecords.reduce((sum, record) => sum + (record.items || []).length, 0);
+      const rate = possibleChecks === 0 ? 0 : Math.round((total / possibleChecks) * 100);
+
+      overallRate.textContent = `${rate}%`;
+      totalChecks.textContent = String(total);
+      periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
+
+      bars.innerHTML = "";
+      ITEMS.forEach(item => {
+        const checkedDays = periodRecords.filter(record => (record.items || []).includes(item.id)).length;
+        const itemRate = Math.round((checkedDays / dates.length) * 100);
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="bar-top">
+            <div class="bar-name">${item.title}</div>
+            <div class="bar-value">${checkedDays}/${dates.length}日・${itemRate}%</div>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${itemRate}%"></div></div>
+        `;
+        bars.appendChild(row);
+      });
+
+      renderHistory(records);
+    }
+
+    function renderHistory(records) {
+      const entries = Object.entries(records)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 8);
+
+      if (entries.length === 0) {
+        history.innerHTML = `<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>`;
+        return;
+      }
+
+      history.innerHTML = "";
+      entries.forEach(([date, record]) => {
+        const names = (record.items || [])
+          .map(id => ITEMS.find(item => item.id === id)?.title)
+          .filter(Boolean);
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+          <div class="history-date">${date}</div>
+          <div class="history-text">${names.length ? names.join(" / ") : "チェックなし"}</div>
+          ${record.memo ? `<div class="history-text">メモ：${escapeHtml(record.memo)}</div>` : ""}
+        `;
+        history.appendChild(div);
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function showThresholdAlert(triggeredItems) {
+      if (triggeredItems.length === 0) return;
+      alertList.innerHTML = "";
+      triggeredItems.forEach(({ title, count }) => {
+        const li = document.createElement("li");
+        li.textContent = `${title}：累計${count}回`;
+        alertList.appendChild(li);
+      });
+      alertModal.classList.add("show");
+    }
+
+    function saveRecord() {
+      const date = recordDate.value || todayString();
+      const records = getRecords();
+      const beforeCounts = countByItem(records);
+
+      records[date] = {
+        items: Array.from(selectedItems),
+        memo: memo.value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      setRecords(records);
+
+      const afterCounts = countByItem(records);
+      const triggered = ITEMS
+        .map(item => ({
+          title: item.title,
+          before: beforeCounts[item.id] || 0,
+          count: afterCounts[item.id] || 0
+        }))
+        .filter(item => item.count > item.before && item.count >= 10 && item.count % 10 === 0);
+
+      showToast("保存しました");
+      showThresholdAlert(triggered);
+      renderDashboard();
+    }
+
+    function clearCurrentDay() {
+      const records = getRecords();
+      delete records[recordDate.value];
+      setRecords(records);
+      selectedItems = new Set();
+      memo.value = "";
+      syncCheckVisuals();
+      renderDashboard();
+      showToast("この日の記録を削除しました");
+    }
+
+    function exportCsv() {
+      const records = getRecords();
+      const header = ["date", ...ITEMS.map(item => item.title), "memo", "updatedAt"];
+      const rows = Object.entries(records)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, record]) => {
+          const checked = new Set(record.items || []);
+          return [
+            date,
+            ...ITEMS.map(item => checked.has(item.id) ? "1" : "0"),
+            record.memo || "",
+            record.updatedAt || ""
+          ];
+        });
+
+      const csv = [header, ...rows]
+        .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `勤務環境ログ_${todayString()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        currentPeriod = tab.dataset.period;
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        renderDashboard();
+      });
+    });
+
+    recordDate.addEventListener("change", loadDateRecord);
+    saveBtn.addEventListener("click", saveRecord);
+    clearDayBtn.addEventListener("click", clearCurrentDay);
+    closeModalBtn.addEventListener("click", () => alertModal.classList.remove("show"));
+    alertModal.addEventListener("click", event => {
+      if (event.target === alertModal) alertModal.classList.remove("show");
+    });
+    exportBtn.addEventListener("click", exportCsv);
+
+    recordDate.value = todayString();
+    renderCheckList();
+    loadDateRecord();
+  </script>
+</body>
+</html>
