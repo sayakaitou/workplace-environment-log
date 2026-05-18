@@ -590,8 +590,8 @@
       </div>
 
       <div class="auth-actions">
-        <button type="button" id="loginBtn" class="primary">ログイン</button>
-        <button type="button" id="signupBtn" class="secondary">新規登録</button>
+        <button type="button" id="loginBtn" class="primary" onclick="login()">ログイン</button>
+        <button type="button" id="signupBtn" class="secondary" onclick="signup()">新規登録</button>
       </div>
       <div id="authMessage" class="auth-message"></div>
     </section>
@@ -1348,31 +1348,71 @@
     }
 
     function login() {
-      authMessage.textContent = "";
-      loginBtn.disabled = true;
-      signupBtn.disabled = true;
-      auth.signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-        .catch(function (error) {
-          authMessage.textContent = firebaseErrorMessage(error);
-        })
-        .finally(function () {
-          loginBtn.disabled = false;
-          signupBtn.disabled = false;
-        });
+      try {
+        authMessage.textContent = "";
+        if (!auth) {
+          authMessage.textContent = "Firebaseの初期化が完了していません。ページを再読み込みしてください。";
+          return;
+        }
+        if (!authEmail.value.trim()) {
+          authMessage.textContent = "メールアドレスを入力してください。";
+          return;
+        }
+        if (!authPassword.value) {
+          authMessage.textContent = "パスワードを入力してください。";
+          return;
+        }
+        loginBtn.disabled = true;
+        signupBtn.disabled = true;
+        auth.signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
+          .catch(function (error) {
+            authMessage.textContent = firebaseErrorMessage(error);
+          })
+          .finally(function () {
+            loginBtn.disabled = false;
+            signupBtn.disabled = false;
+          });
+      } catch (error) {
+        authMessage.textContent = "ログイン処理でエラーが発生しました：" + error.message;
+        loginBtn.disabled = false;
+        signupBtn.disabled = false;
+      }
     }
 
     function signup() {
-      authMessage.textContent = "";
-      loginBtn.disabled = true;
-      signupBtn.disabled = true;
-      auth.createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-        .catch(function (error) {
-          authMessage.textContent = firebaseErrorMessage(error);
-        })
-        .finally(function () {
-          loginBtn.disabled = false;
-          signupBtn.disabled = false;
-        });
+      try {
+        authMessage.textContent = "";
+        if (!auth) {
+          authMessage.textContent = "Firebaseの初期化が完了していません。ページを再読み込みしてください。";
+          return;
+        }
+        if (!authEmail.value.trim()) {
+          authMessage.textContent = "メールアドレスを入力してください。";
+          return;
+        }
+        if (!authPassword.value) {
+          authMessage.textContent = "パスワードを入力してください。";
+          return;
+        }
+        if (authPassword.value.length < 6) {
+          authMessage.textContent = "パスワードは6文字以上にしてください。";
+          return;
+        }
+        loginBtn.disabled = true;
+        signupBtn.disabled = true;
+        auth.createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
+          .catch(function (error) {
+            authMessage.textContent = firebaseErrorMessage(error);
+          })
+          .finally(function () {
+            loginBtn.disabled = false;
+            signupBtn.disabled = false;
+          });
+      } catch (error) {
+        authMessage.textContent = "新規登録処理でエラーが発生しました：" + error.message;
+        loginBtn.disabled = false;
+        signupBtn.disabled = false;
+      }
     }
 
     function logout() {
@@ -1385,12 +1425,21 @@
 
     function initFirebase() {
       if (!window.firebase) {
-        authMessage.textContent = "Firebaseの読み込みに失敗しました。インターネット接続を確認してください。";
+        authMessage.textContent = "Firebaseの読み込みに失敗しました。iPhoneの通信環境、コンテンツブロッカー、プライベートブラウズ設定を確認してください。";
         return;
       }
-      app = firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
+      try {
+        if (!firebase.apps.length) {
+          app = firebase.initializeApp(firebaseConfig);
+        } else {
+          app = firebase.app();
+        }
+        auth = firebase.auth();
+        db = firebase.firestore();
+      } catch (error) {
+        authMessage.textContent = "Firebase初期化エラー：" + error.message;
+        return;
+      }
 
       try {
         db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
@@ -1489,6 +1538,8 @@
     }
 
     window.openItemSettings = openItemSettings;
+    window.login = login;
+    window.signup = signup;
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", init);
