@@ -564,7 +564,7 @@
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。</p>
       <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;" onclick="startGoogleLogin()">Googleでログイン</button>
-      <div id="authMessage" class="auth-message">確認用バージョン：v19 / ログイン後画面切替修正版</div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v20 / ログイン関数先読み版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -656,6 +656,27 @@
   </div>
 
   <script>
+    window.enterAppAfterLogin = function(user) {
+      try {
+        window.currentUser = user;
+        var authScreen = document.getElementById("authScreen");
+        var appScreen = document.getElementById("appScreen");
+        var userEmail = document.getElementById("userEmail");
+        if (authScreen) authScreen.classList.add("hidden");
+        if (appScreen) appScreen.classList.remove("hidden");
+        if (userEmail) userEmail.textContent = user && user.email ? user.email : "Googleアカウントでログイン中";
+        if (typeof startListeners === "function") {
+          startListeners(user);
+        } else {
+          var msg = document.getElementById("authMessage");
+          if (msg) msg.textContent = "ログインしましたが、データ読込処理がまだ読み込まれていません。ページを再読み込みしてください。";
+        }
+      } catch (error) {
+        var msg = document.getElementById("authMessage");
+        if (msg) msg.textContent = "ログイン後の画面切替エラー：" + error.message;
+      }
+    };
+
     var firebaseConfig = {
       apiKey: "AIzaSyCV9B6BjuKYzPfUrrMsrC04_h-lMLE-IF0",
       authDomain: "workplace-log-free-test.firebaseapp.com",
@@ -1326,7 +1347,7 @@
       if (!firebaseReady) setupFirebaseCore();
       if (!auth) return;
       auth.onAuthStateChanged(function (user) {
-        if (user) enterAppAfterLogin(user);
+        if (user) window.enterAppAfterLogin(user);
         else showLoginScreen();
       });
     }
