@@ -590,10 +590,10 @@
       </div>
 
       <div class="auth-actions">
-        <button type="button" id="loginBtn" class="primary" onclick="login()">ログイン</button>
-        <button type="button" id="signupBtn" class="secondary" onclick="signup()">新規登録</button>
+        <button type="button" id="loginBtn" class="primary" onclick="alert('ログインボタンは押せています'); if (window.login) { window.login(); } else { alert('ログイン処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">ログイン</button>
+        <button type="button" id="signupBtn" class="secondary" onclick="alert('新規登録ボタンは押せています'); if (window.signup) { window.signup(); } else { alert('新規登録処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">新規登録</button>
       </div>
-      <div id="authMessage" class="auth-message"></div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v12</div>
     </section>
 
     <section id="appScreen" class="hidden">
