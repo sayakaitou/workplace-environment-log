@@ -1288,8 +1288,7 @@ function enterAppAfterLogin(user) {
         for (var col = 0; col < rows[r].length; col++) csvRow.push('"' + String(rows[r][col]).replace(/"/g, '""') + '"');
         csvLines.push(csvRow.join(","));
       }
-      var blob = new Blob(["﻿" + csvLines.join("
-")], { type: "text/csv;charset=utf-8;" });
+      var blob = new Blob(["\ufeff" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
@@ -1475,9 +1474,8 @@ function startListeners(user) {
     }
 
     window.addEventListener("error", function (event) {
-      writeAuthMessage("JavaScriptエラー：" + event.message + "
-" + (event.filename || "") + ":" + (event.lineno || ""));
-    });
+  writeAuthMessage("JavaScriptエラー：" + event.message + "\n" + (event.filename || "") + ":" + (event.lineno || ""));
+});
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initApp);
     else initApp();
