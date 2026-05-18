@@ -564,7 +564,7 @@
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。</p>
       <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;" onclick="startGoogleLogin()">Googleでログイン</button>
-      <div id="authMessage" class="auth-message">確認用バージョン：v17 / ログイン処理分離版</div>
+      <div id="authMessage" class="auth-message">確認用バージョン：v19 / ログイン後画面切替修正版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -732,7 +732,27 @@
       }
     }
 
+    function enterAppAfterLogin(user) {
+      try {
+        currentUser = user;
+        var authScreen = document.getElementById("authScreen");
+        var appScreen = document.getElementById("appScreen");
+        var userEmail = document.getElementById("userEmail");
+        if (authScreen) authScreen.classList.add("hidden");
+        if (appScreen) appScreen.classList.remove("hidden");
+        if (userEmail) userEmail.textContent = user.email || "Googleアカウントでログイン中";
+        if (typeof startListeners === "function") {
+          startListeners(user);
+        } else {
+          writeAuthMessage("ログインしましたが、データ読込処理の読み込みに失敗しています。index.htmlを最新版に貼り替えてください。");
+        }
+      } catch (error) {
+        writeAuthMessage("ログイン後の画面切替エラー：" + error.message);
+      }
+    }
+
     window.startGoogleLogin = startGoogleLogin;
+    window.enterAppAfterLogin = enterAppAfterLogin;
   </script>
 
   <script>
