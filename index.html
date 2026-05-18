@@ -182,6 +182,7 @@
       color: var(--red);
       font-size: 13px;
       line-height: 1.6;
+      white-space: pre-wrap;
     }
 
     .user-bar {
@@ -561,9 +562,9 @@
 
     <section id="authScreen" class="card auth-card">
       <h2 style="margin:0 0 8px;">Googleアカウントでログイン</h2>
-      <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。メールアドレスとパスワードの新規登録は不要です。</p>
-      <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;">Googleでログイン</button>
-      <div id="authMessage" class="auth-message">確認用バージョン：v16 / Googleポップアップログイン版</div>
+      <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。</p>
+      <button type="button" id="googleLoginBtn" class="primary" style="width:100%; margin-top:14px;" onclick="startGoogleLogin()">Googleでログイン</button>
+      <div id="authMessage" class="auth-message">確認用バージョン：v17 / ログイン処理分離版</div>
     </section>
 
     <section id="appScreen" class="hidden">
@@ -664,6 +665,70 @@
       appId: "1:260804109205:web:2f0ec733ebf180d9538c9c"
     };
 
+    var app = null;
+    var auth = null;
+    var db = null;
+    var currentUser = null;
+    var firebaseReady = false;
+
+    function writeAuthMessage(message) {
+      var el = document.getElementById("authMessage");
+      if (el) el.textContent = message;
+    }
+
+    function firebaseErrorMessage(error) {
+      var code = error && error.code ? error.code : "";
+      if (code === "auth/unauthorized-domain") return "このURLのドメインがFirebaseで許可されていません。Authenticationの承認済みドメインを確認してください。";
+      if (code === "auth/operation-not-allowed") return "Firebase AuthenticationでGoogleログインが有効になっていません。Sign-in methodでGoogleを有効化してください。";
+      if (code === "auth/network-request-failed") return "通信エラーです。ネットワーク接続を確認してください。";
+      if (code === "auth/popup-blocked") return "ポップアップがブロックされました。ブラウザのポップアップ許可設定を確認してください。";
+      if (code === "auth/popup-closed-by-user") return "Googleログイン画面が閉じられました。もう一度お試しください。";
+      if (code === "permission-denied") return "Firestoreの権限エラーです。セキュリティルールを確認してください。";
+      return "エラー：" + (error && error.message ? error.message : code);
+    }
+
+    function setupFirebaseCore() {
+      if (!window.firebase) {
+        writeAuthMessage("Firebaseの読み込みに失敗しました。通信環境、広告ブロッカー、コンテンツブロッカーを確認してください。");
+        return false;
+      }
+      try {
+        if (!firebase.apps.length) app = firebase.initializeApp(firebaseConfig);
+        else app = firebase.app();
+        auth = firebase.auth();
+        db = firebase.firestore();
+        firebaseReady = true;
+        return true;
+      } catch (error) {
+        writeAuthMessage("Firebase初期化エラー：" + error.message);
+        return false;
+      }
+    }
+
+    function startGoogleLogin() {
+      writeAuthMessage("Googleログイン処理を開始しています。");
+      if (!firebaseReady) {
+        if (!setupFirebaseCore()) return;
+      }
+      try {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
+          return auth.signInWithPopup(provider);
+        }).then(function () {
+          writeAuthMessage("ログインしました。データを読み込んでいます。");
+        }).catch(function (error) {
+          writeAuthMessage(firebaseErrorMessage(error));
+        });
+      } catch (error) {
+        writeAuthMessage("Googleログイン開始時エラー：" + error.message);
+      }
+    }
+
+    window.startGoogleLogin = startGoogleLogin;
+  </script>
+
+  <script>
     var DEFAULT_ITEMS = [
       { id: "info-gap", title: "必要な情報共有がなかった", desc: "業務に必要な説明・資料・背景情報が不足していた", active: true },
       { id: "sudden-change", title: "急な業務変更・指示変更があった", desc: "事前説明が少ないまま、予定や担当業務が変わった", active: true },
@@ -675,13 +740,6 @@
       { id: "good-support", title: "助かった配慮・支援があった", desc: "説明、声かけ、業務調整など、助けになる対応があった", active: true }
     ];
 
-    var app = null;
-    var auth = null;
-    var db = null;
-    var currentUser = null;
-    var unsubscribeSettings = null;
-    var unsubscribeRecords = null;
-
     var elements = {};
     var items = [];
     var records = {};
@@ -689,8 +747,10 @@
     var selectedItems = [];
     var currentPeriod = "day";
     var dataReady = false;
+    var unsubscribeSettings = null;
+    var unsubscribeRecords = null;
 
-    function $(id) { return document.getElementById(id); }
+    function getEl(id) { return document.getElementById(id); }
 
     function todayString() {
       var now = new Date();
@@ -743,9 +803,7 @@
       return result;
     }
 
-    function includes(list, value) {
-      return list.indexOf(value) !== -1;
-    }
+    function includes(list, value) { return list.indexOf(value) !== -1; }
 
     function unique(list) {
       var result = [];
@@ -755,40 +813,19 @@
       return result;
     }
 
-    function showMessage(message) {
-      if (elements.authMessage) elements.authMessage.textContent = message;
-    }
-
     function showToast(message) {
       elements.toast.textContent = message;
       elements.toast.classList.add("show");
       setTimeout(function () { elements.toast.classList.remove("show"); }, 1800);
     }
 
-    function firebaseErrorMessage(error) {
-      var code = error && error.code ? error.code : "";
-      if (code === "auth/unauthorized-domain") return "このURLのドメインがFirebaseで許可されていません。Authenticationの承認済みドメインを確認してください。";
-      if (code === "auth/operation-not-allowed") return "Firebase AuthenticationでGoogleログインが有効になっていません。Sign-in methodでGoogleを有効化してください。";
-      if (code === "auth/network-request-failed") return "通信エラーです。ネットワーク接続を確認してください。";
-      if (code === "permission-denied") return "Firestoreの権限エラーです。セキュリティルールを確認してください。";
-      return "エラー：" + (error && error.message ? error.message : code);
-    }
-
     function setSyncStatus(text) {
       if (elements.syncStatus) elements.syncStatus.textContent = text;
     }
 
-    function userDoc() {
-      return db.collection("users").doc(currentUser.uid);
-    }
-
-    function settingsDoc() {
-      return userDoc().collection("settings").doc("app");
-    }
-
-    function recordsCollection() {
-      return userDoc().collection("records");
-    }
+    function userDoc() { return db.collection("users").doc(currentUser.uid); }
+    function settingsDoc() { return userDoc().collection("settings").doc("app"); }
+    function recordsCollection() { return userDoc().collection("records"); }
 
     function getActiveItems() {
       var result = [];
@@ -825,17 +862,14 @@
     function renderCheckList() {
       var activeItems = getActiveItems();
       elements.checkList.innerHTML = "";
-
       if (!dataReady) {
         elements.checkList.innerHTML = '<div class="empty">同期データを読み込み中です。</div>';
         return;
       }
-
       if (activeItems.length === 0) {
         elements.checkList.innerHTML = '<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>';
         return;
       }
-
       for (var i = 0; i < activeItems.length; i++) {
         var item = activeItems[i];
         var row = document.createElement("div");
@@ -910,7 +944,6 @@
       var dates = getPeriodDates();
       var periodRecords = [];
       for (var i = 0; i < dates.length; i++) periodRecords.push(records[dates[i]] || { items: [] });
-
       var dashboardItems = getDashboardItems(periodRecords);
       var displayIds = dashboardItems.map(function (item) { return item.id; });
       var total = 0;
@@ -920,14 +953,12 @@
           if (includes(displayIds, recordItems[k])) total++;
         }
       }
-
       var possibleChecks = dates.length * Math.max(dashboardItems.length, 1);
       var rate = Math.round((total / possibleChecks) * 100);
       elements.overallRate.textContent = rate + "%";
       elements.totalChecks.textContent = String(total);
       elements.periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
       elements.bars.innerHTML = "";
-
       if (dashboardItems.length === 0) {
         elements.bars.innerHTML = '<div class="empty">表示できる項目がありません。</div>';
       } else {
@@ -954,7 +985,6 @@
         elements.history.innerHTML = '<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>';
         return;
       }
-
       elements.history.innerHTML = "";
       for (var i = 0; i < entries.length; i++) {
         var date = entries[i];
@@ -1013,7 +1043,6 @@
           snapshots[id] = { title: item && item.title ? item.title : id, desc: item && item.desc ? item.desc : "" };
         }
       }
-
       elements.saveBtn.disabled = true;
       setSyncStatus("保存中");
       recordsCollection().doc(date).set({
@@ -1087,7 +1116,6 @@
         div.innerHTML = '<div class="editor-header"><span class="status-badge ' + (item.active === false ? 'off' : '') + '">' + (item.active === false ? '非表示' : '表示中') + '</span><button type="button" class="mini-btn" data-index="' + i + '">' + (item.active === false ? '表示に戻す' : '非表示にする') + '</button></div><label class="editor-label">項目名<input type="text" data-field="title" value="' + escapeHtml(item.title) + '" /></label><label class="editor-label">説明<textarea data-field="desc">' + escapeHtml(item.desc) + '</textarea></label>';
         elements.itemEditorList.appendChild(div);
       }
-
       var buttons = elements.itemEditorList.querySelectorAll("button[data-index]");
       for (var j = 0; j < buttons.length; j++) {
         buttons[j].onclick = function () {
@@ -1141,7 +1169,6 @@
           nextItems.push(edited);
         }
       }
-
       elements.saveItemsBtn.disabled = true;
       settingsDoc().set({
         items: nextItems,
@@ -1172,7 +1199,6 @@
           }
         }
       }
-
       var header = ["date"];
       for (var h = 0; h < allItems.length; h++) header.push(allItems[h].title);
       header.push("memo");
@@ -1189,14 +1215,12 @@
         row.push(rec && rec.clientUpdatedAt ? rec.clientUpdatedAt : "");
         rows.push(row);
       }
-
       var csvLines = [];
       for (var r = 0; r < rows.length; r++) {
         var csvRow = [];
         for (var col = 0; col < rows[r].length; col++) csvRow.push('"' + String(rows[r][col]).replace(/"/g, '""') + '"');
         csvLines.push(csvRow.join(","));
       }
-
       var blob = new Blob(["﻿" + csvLines.join("
 ")], { type: "text/csv;charset=utf-8;" });
       var url = URL.createObjectURL(blob);
@@ -1217,7 +1241,6 @@
       renderCheckList();
       renderDashboard();
       setSyncStatus("同期準備中");
-
       unsubscribeSettings = settingsDoc().onSnapshot(function (doc) {
         if (!doc.exists) {
           settingsDoc().set({
@@ -1234,7 +1257,6 @@
         loadDateRecord();
         setSyncStatus("同期中");
       }, function (error) { alert(firebaseErrorMessage(error)); });
-
       unsubscribeRecords = recordsCollection().onSnapshot(function (snapshot) {
         var nextRecords = {};
         snapshot.forEach(function (doc) { nextRecords[doc.id] = doc.data() || {}; });
@@ -1251,50 +1273,11 @@
       unsubscribeRecords = null;
     }
 
-    function googleLogin() {
-      showMessage("Googleログイン画面を開いています。");
-      if (!auth) {
-        showMessage("Firebaseの初期化が完了していません。ページを再読み込みしてください。" );
-        return;
-      }
-      var provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
-        return auth.signInWithPopup(provider);
-      }).then(function () {
-        showMessage("ログインしました。同期データを読み込んでいます。");
-      }).catch(function (error) {
-        if (error && error.code === "auth/popup-blocked") {
-          showMessage("ポップアップがブロックされました。Safariやブラウザのポップアップブロックを解除してから、もう一度お試しください。");
-          return;
-        }
-        if (error && error.code === "auth/popup-closed-by-user") {
-          showMessage("Googleログイン画面が閉じられました。もう一度お試しください。");
-          return;
-        }
-        showMessage(firebaseErrorMessage(error));
-      });
-    }
+    function logout() { auth.signOut(); }
 
-    function logout() {
-      auth.signOut();
-    }
-
-    function initFirebase() {
-      if (!window.firebase) {
-        showMessage("Firebaseの読み込みに失敗しました。通信環境やコンテンツブロッカーを確認してください。");
-        return;
-      }
-      try {
-        if (!firebase.apps.length) app = firebase.initializeApp(firebaseConfig);
-        else app = firebase.app();
-        auth = firebase.auth();
-        db = firebase.firestore();
-      } catch (error) {
-        showMessage("Firebase初期化エラー：" + error.message);
-        return;
-      }
-
+    function setupAuthWatcher() {
+      if (!firebaseReady) setupFirebaseCore();
+      if (!auth) return;
       auth.onAuthStateChanged(function (user) {
         if (user) {
           currentUser = user;
@@ -1315,41 +1298,40 @@
       });
     }
 
-    function init() {
-      elements.authScreen = $("authScreen");
-      elements.appScreen = $("appScreen");
-      elements.authMessage = $("authMessage");
-      elements.googleLoginBtn = $("googleLoginBtn");
-      elements.logoutBtn = $("logoutBtn");
-      elements.userEmail = $("userEmail");
-      elements.syncStatus = $("syncStatus");
-      elements.recordDate = $("recordDate");
-      elements.checkList = $("checkList");
-      elements.memo = $("memo");
-      elements.saveBtn = $("saveBtn");
-      elements.clearDayBtn = $("clearDayBtn");
-      elements.overallRate = $("overallRate");
-      elements.totalChecks = $("totalChecks");
-      elements.bars = $("bars");
-      elements.history = $("history");
-      elements.periodLabel = $("periodLabel");
-      elements.toast = $("toast");
-      elements.alertModal = $("alertModal");
-      elements.alertList = $("alertList");
-      elements.closeModalBtn = $("closeModalBtn");
-      elements.exportBtn = $("exportBtn");
-      elements.itemModal = $("itemModal");
-      elements.itemEditorList = $("itemEditorList");
-      elements.addItemBtn = $("addItemBtn");
-      elements.cancelItemsBtn = $("cancelItemsBtn");
-      elements.saveItemsBtn = $("saveItemsBtn");
-      elements.openItemSettingsBtn = $("openItemSettingsBtn");
+    function initApp() {
+      elements.authScreen = getEl("authScreen");
+      elements.appScreen = getEl("appScreen");
+      elements.authMessage = getEl("authMessage");
+      elements.googleLoginBtn = getEl("googleLoginBtn");
+      elements.logoutBtn = getEl("logoutBtn");
+      elements.userEmail = getEl("userEmail");
+      elements.syncStatus = getEl("syncStatus");
+      elements.recordDate = getEl("recordDate");
+      elements.checkList = getEl("checkList");
+      elements.memo = getEl("memo");
+      elements.saveBtn = getEl("saveBtn");
+      elements.clearDayBtn = getEl("clearDayBtn");
+      elements.overallRate = getEl("overallRate");
+      elements.totalChecks = getEl("totalChecks");
+      elements.bars = getEl("bars");
+      elements.history = getEl("history");
+      elements.periodLabel = getEl("periodLabel");
+      elements.toast = getEl("toast");
+      elements.alertModal = getEl("alertModal");
+      elements.alertList = getEl("alertList");
+      elements.closeModalBtn = getEl("closeModalBtn");
+      elements.exportBtn = getEl("exportBtn");
+      elements.itemModal = getEl("itemModal");
+      elements.itemEditorList = getEl("itemEditorList");
+      elements.addItemBtn = getEl("addItemBtn");
+      elements.cancelItemsBtn = getEl("cancelItemsBtn");
+      elements.saveItemsBtn = getEl("saveItemsBtn");
+      elements.openItemSettingsBtn = getEl("openItemSettingsBtn");
 
       elements.recordDate.value = todayString();
       renderCheckList();
       renderDashboard();
 
-      elements.googleLoginBtn.onclick = googleLogin;
       elements.logoutBtn.onclick = logout;
       elements.recordDate.onchange = loadDateRecord;
       elements.saveBtn.onclick = saveRecord;
@@ -1378,13 +1360,16 @@
         if (event.target === elements.itemModal) elements.itemModal.classList.remove("show");
       };
 
-      initFirebase();
+      setupAuthWatcher();
     }
 
-    window.googleLogin = googleLogin;
+    window.addEventListener("error", function (event) {
+      writeAuthMessage("JavaScriptエラー：" + event.message + "
+" + (event.filename || "") + ":" + (event.lineno || ""));
+    });
 
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-    else init();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initApp);
+    else initApp();
   </script>
 </body>
 </html>
