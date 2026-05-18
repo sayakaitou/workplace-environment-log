@@ -1241,10 +1241,18 @@ function enterAppAfterLogin(user) {
         items: nextItems,
         clientUpdatedAt: now,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true }).then(function () {
-        elements.itemModal.classList.remove("show");
-        showToast("項目を反映しました");
-      }).catch(function (error) {
+      }, { merge: true 
+}).then(function () {
+  items = nextItems;
+  dataReady = true;
+  renderCheckList();
+  loadDateRecord();
+  renderDashboard();
+
+  elements.itemModal.classList.remove("show");
+  showToast("項目を反映しました");
+}).catch(function (error) {
+        
         alert(firebaseErrorMessage(error));
       }).then(function () {
         elements.saveItemsBtn.disabled = false;
@@ -1343,9 +1351,11 @@ function startListeners(user) {
       items = normalizeItems(DEFAULT_ITEMS);
     }
 
-    dataReady = true;
-    loadDateRecord();
-    setSyncStatus("同期中");
+   dataReady = true;
+renderCheckList();
+loadDateRecord();
+renderDashboard();
+setSyncStatus("同期中");
   }, function (error) {
     setSyncStatus("同期エラー");
     writeAuthMessage(firebaseErrorMessage(error));
