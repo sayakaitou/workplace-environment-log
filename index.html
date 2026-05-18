@@ -580,7 +580,7 @@
       <p class="small">PCとiPhoneで同じGoogleアカウントを使うと、記録内容が同期されます。メールアドレスとパスワードの新規登録は不要です。</p>
 
       <div class="auth-actions" style="grid-template-columns:1fr;">
-        <button type="button" id="googleLoginBtn" class="primary" onclick="googleLogin()">Googleでログイン</button>
+        <button type="button" id="googleLoginBtn" class="primary" onclick="alert('Googleログインボタンは押せています'); if (window.googleLogin) { window.googleLogin(); } else { alert('Googleログイン処理の読み込みに失敗しています。ページを再読み込みしてください。'); }">Googleでログイン</button>
       </div>
       <div id="authMessage" class="auth-message">確認用バージョン：v13 / Googleログイン版</div>
     </section>
@@ -1451,8 +1451,6 @@
       renderCheckList();
       renderDashboard();
 
-      if (loginBtn) loginBtn.onclick = login;
-      if (signupBtn) signupBtn.onclick = signup;
       if (googleLoginBtn) googleLoginBtn.onclick = googleLogin;
       logoutBtn.onclick = logout;
       recordDate.onchange = loadDateRecord;
@@ -1491,8 +1489,6 @@
     }
 
     window.openItemSettings = openItemSettings;
-    window.login = login;
-    window.signup = signup;
     window.googleLogin = googleLogin;
 
     if (document.readyState === "loading") {
