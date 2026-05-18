@@ -103,15 +103,6 @@
       line-height: 1.55;
     }
 
-    .manage-btn {
-      min-height: 36px;
-      padding: 0 12px;
-      background: rgba(120, 149, 166, 0.16);
-      color: var(--text);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
     label.date-label {
       display: block;
       font-size: 13px;
@@ -240,6 +231,15 @@
     .primary { color: #fff; background: var(--green-dark); }
     .secondary { color: var(--green-dark); background: rgba(111, 143, 114, 0.16); }
     .danger { color: #fff; background: var(--red); }
+
+    .manage-btn {
+      min-height: 38px;
+      padding: 0 13px;
+      background: rgba(120, 149, 166, 0.16);
+      color: var(--text);
+      font-size: 12px;
+      white-space: nowrap;
+    }
 
     .period-tabs {
       display: grid;
@@ -516,7 +516,7 @@
       <section class="card">
         <div class="section-title">
           <h2>今日の記録</h2>
-          <button class="manage-btn" id="openItemSettingsBtn">項目を変更する</button>
+          <button type="button" class="manage-btn" id="openItemSettingsBtn" onclick="openItemSettings()">項目を変更する</button>
         </div>
 
         <label class="date-label" for="recordDate">記録日</label>
@@ -527,8 +527,8 @@
         <textarea id="memo" placeholder="補足メモ：誰が・いつ・何をしたか、事実ベースで短く記録できます。例）午前10時頃、業務内容の変更について説明がないまま対応を求められた。"></textarea>
 
         <div class="actions">
-          <button class="secondary" id="clearDayBtn">この日の入力を消す</button>
-          <button class="primary" id="saveBtn">保存する</button>
+          <button type="button" class="secondary" id="clearDayBtn">この日の入力を消す</button>
+          <button type="button" class="primary" id="saveBtn">保存する</button>
         </div>
       </section>
 
@@ -539,9 +539,9 @@
         </div>
 
         <div class="period-tabs">
-          <button class="tab active" data-period="day">1日</button>
-          <button class="tab" data-period="week">1週間</button>
-          <button class="tab" data-period="month">1か月</button>
+          <button type="button" class="tab active" data-period="day">1日</button>
+          <button type="button" class="tab" data-period="week">1週間</button>
+          <button type="button" class="tab" data-period="month">1か月</button>
         </div>
 
         <div class="summary">
@@ -559,7 +559,7 @@
 
         <div class="section-title" style="margin-top: 18px;">
           <h2>最近の記録</h2>
-          <button class="tab" id="exportBtn" style="width: 96px;">CSV</button>
+          <button type="button" class="tab" id="exportBtn" style="width: 96px;">CSV</button>
         </div>
         <div id="history" class="history"></div>
       </section>
@@ -573,7 +573,7 @@
       <h3>チェック数が節目に到達しました</h3>
       <p>同じ項目の累計チェックが10回単位に到達しました。必要に応じて、記録内容を振り返ってください。</p>
       <ul id="alertList"></ul>
-      <button id="closeModalBtn" class="primary full">閉じる</button>
+      <button type="button" id="closeModalBtn" class="primary full">閉じる</button>
     </div>
   </div>
 
@@ -582,165 +582,190 @@
       <h3>記録項目を変更する</h3>
       <p>項目名と説明を自由に変更できます。使わなくなった項目は「非表示」にしてください。毎日の記録画面からは外れますが、過去に記録した項目は1日・1週間・1か月の集計、最近の記録、CSVに残ります。</p>
       <div id="itemEditorList" class="item-editor-list"></div>
-      <button id="addItemBtn" class="secondary" style="width:100%; margin-top:14px;">＋ 項目を追加する</button>
+      <button type="button" id="addItemBtn" class="secondary" style="width:100%; margin-top:14px;">＋ 項目を追加する</button>
       <div class="modal-actions">
-        <button id="cancelItemsBtn" class="secondary">閉じる</button>
-        <button id="saveItemsBtn" class="primary">反映する</button>
+        <button type="button" id="cancelItemsBtn" class="secondary">閉じる</button>
+        <button type="button" id="saveItemsBtn" class="primary">反映する</button>
       </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "workplace_environment_records_v1";
-    const ITEMS_KEY = "workplace_environment_items_v1";
+    var STORAGE_KEY = "workplace_environment_records_v1";
+    var ITEMS_KEY = "workplace_environment_items_v2";
 
-    const DEFAULT_ITEMS = [
-      { id: "info-gap", title: "必要な情報共有がなかった", desc: "業務に必要な説明・資料・背景情報が不足していた", active: true, createdAt: "default" },
-      { id: "sudden-change", title: "急な業務変更・指示変更があった", desc: "事前説明が少ないまま、予定や担当業務が変わった", active: true, createdAt: "default" },
-      { id: "unclear-role", title: "役割・責任範囲があいまいだった", desc: "自分がどこまで対応すべきか分かりにくかった", active: true, createdAt: "default" },
-      { id: "pressure", title: "強い言い方・圧を感じる対応があった", desc: "威圧的、否定的、過度に責めるような言動があった", active: true, createdAt: "default" },
-      { id: "isolation", title: "相談・確認しづらい状況があった", desc: "質問しづらい、確認相手がいない、返答が得にくい状況だった", active: true, createdAt: "default" },
-      { id: "workload", title: "業務量・納期に無理があった", desc: "時間内に処理するには負荷が高い、または急ぎすぎる依頼だった", active: true, createdAt: "default" },
-      { id: "health-load", title: "心身への負担が大きかった", desc: "強い疲労、緊張、動悸、頭痛、集中困難などを感じた", active: true, createdAt: "default" },
-      { id: "good-support", title: "助かった配慮・支援があった", desc: "説明、声かけ、業務調整など、助けになる対応があった", active: true, createdAt: "default" }
+    var DEFAULT_ITEMS = [
+      { id: "info-gap", title: "必要な情報共有がなかった", desc: "業務に必要な説明・資料・背景情報が不足していた", active: true },
+      { id: "sudden-change", title: "急な業務変更・指示変更があった", desc: "事前説明が少ないまま、予定や担当業務が変わった", active: true },
+      { id: "unclear-role", title: "役割・責任範囲があいまいだった", desc: "自分がどこまで対応すべきか分かりにくかった", active: true },
+      { id: "pressure", title: "強い言い方・圧を感じる対応があった", desc: "威圧的、否定的、過度に責めるような言動があった", active: true },
+      { id: "isolation", title: "相談・確認しづらい状況があった", desc: "質問しづらい、確認相手がいない、返答が得にくい状況だった", active: true },
+      { id: "workload", title: "業務量・納期に無理があった", desc: "時間内に処理するには負荷が高い、または急ぎすぎる依頼だった", active: true },
+      { id: "health-load", title: "心身への負担が大きかった", desc: "強い疲労、緊張、動悸、頭痛、集中困難などを感じた", active: true },
+      { id: "good-support", title: "助かった配慮・支援があった", desc: "説明、声かけ、業務調整など、助けになる対応があった", active: true }
     ];
 
-    const recordDate = document.getElementById("recordDate");
-    const checkList = document.getElementById("checkList");
-    const memo = document.getElementById("memo");
-    const saveBtn = document.getElementById("saveBtn");
-    const clearDayBtn = document.getElementById("clearDayBtn");
-    const tabs = document.querySelectorAll(".tab[data-period]");
-    const overallRate = document.getElementById("overallRate");
-    const totalChecks = document.getElementById("totalChecks");
-    const bars = document.getElementById("bars");
-    const history = document.getElementById("history");
-    const periodLabel = document.getElementById("periodLabel");
-    const toast = document.getElementById("toast");
-    const alertModal = document.getElementById("alertModal");
-    const alertList = document.getElementById("alertList");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const exportBtn = document.getElementById("exportBtn");
-    const openItemSettingsBtn = document.getElementById("openItemSettingsBtn");
-    const itemModal = document.getElementById("itemModal");
-    const itemEditorList = document.getElementById("itemEditorList");
-    const addItemBtn = document.getElementById("addItemBtn");
-    const cancelItemsBtn = document.getElementById("cancelItemsBtn");
-    const saveItemsBtn = document.getElementById("saveItemsBtn");
+    var recordDate;
+    var checkList;
+    var memo;
+    var saveBtn;
+    var clearDayBtn;
+    var overallRate;
+    var totalChecks;
+    var bars;
+    var history;
+    var periodLabel;
+    var toast;
+    var alertModal;
+    var alertList;
+    var closeModalBtn;
+    var exportBtn;
+    var itemModal;
+    var itemEditorList;
+    var addItemBtn;
+    var cancelItemsBtn;
+    var saveItemsBtn;
 
-    let items = getItems();
-    let editingItems = [];
-    let selectedItems = new Set();
-    let currentPeriod = "day";
+    var items = [];
+    var editingItems = [];
+    var selectedItems = [];
+    var currentPeriod = "day";
 
     function todayString() {
-      const now = new Date();
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      var now = new Date();
+      return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
     }
 
     function parseDate(value) {
-      const [y, m, d] = value.split("-").map(Number);
-      return new Date(y, m - 1, d);
+      var parts = value.split("-");
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     }
 
     function formatDate(date) {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
     }
 
     function addDays(date, days) {
-      const copy = new Date(date);
+      var copy = new Date(date.getTime());
       copy.setDate(copy.getDate() + days);
       return copy;
     }
 
     function makeItemId() {
-      return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      return "item-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
     }
 
-    function getRecords() {
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readJson(key, fallback) {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        var raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        var parsed = JSON.parse(raw);
+        return parsed || fallback;
       } catch (error) {
-        return {};
+        return fallback;
       }
     }
 
-    function setRecords(records) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    function writeJson(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
     }
 
     function normalizeItem(item) {
       return {
-        id: item.id || makeItemId(),
-        title: String(item.title || "名称未設定").trim() || "名称未設定",
-        desc: String(item.desc || "").trim(),
-        active: item.active !== false,
-        createdAt: item.createdAt || new Date().toISOString(),
-        updatedAt: item.updatedAt || new Date().toISOString()
+        id: item && item.id ? String(item.id) : makeItemId(),
+        title: item && item.title ? String(item.title) : "名称未設定",
+        desc: item && item.desc ? String(item.desc) : "",
+        active: item && item.active === false ? false : true,
+        createdAt: item && item.createdAt ? item.createdAt : new Date().toISOString(),
+        updatedAt: item && item.updatedAt ? item.updatedAt : new Date().toISOString()
       };
     }
 
     function getItems() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(ITEMS_KEY));
-        if (Array.isArray(saved) && saved.length > 0) return saved.map(normalizeItem);
-      } catch (error) {}
-
-      const defaults = DEFAULT_ITEMS.map(normalizeItem);
-      localStorage.setItem(ITEMS_KEY, JSON.stringify(defaults));
-      return defaults;
+      var saved = readJson(ITEMS_KEY, null);
+      var source = Array.isArray(saved) && saved.length > 0 ? saved : DEFAULT_ITEMS;
+      var result = [];
+      for (var i = 0; i < source.length; i++) result.push(normalizeItem(source[i]));
+      writeJson(ITEMS_KEY, result);
+      return result;
     }
 
     function setItems(nextItems) {
-      localStorage.setItem(ITEMS_KEY, JSON.stringify(nextItems.map(normalizeItem)));
+      var result = [];
+      for (var i = 0; i < nextItems.length; i++) result.push(normalizeItem(nextItems[i]));
+      writeJson(ITEMS_KEY, result);
+      items = result;
+    }
+
+    function getRecords() {
+      return readJson(STORAGE_KEY, {});
+    }
+
+    function setRecords(records) {
+      writeJson(STORAGE_KEY, records);
+    }
+
+    function includes(list, value) {
+      return list.indexOf(value) !== -1;
+    }
+
+    function unique(list) {
+      var result = [];
+      for (var i = 0; i < list.length; i++) {
+        if (!includes(result, list[i])) result.push(list[i]);
+      }
+      return result;
     }
 
     function getActiveItems() {
-      return items.filter(item => item.active !== false);
+      var result = [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].active !== false) result.push(items[i]);
+      }
+      return result;
     }
 
-    function getItemMap(sourceItems = items) {
-      return Object.fromEntries(sourceItems.map(item => [item.id, item]));
+    function findItemById(id) {
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id === id) return items[i];
+      }
+      return null;
     }
 
-    function getUsedItemIds(records = getRecords()) {
-      const used = new Set();
-      Object.values(records).forEach(record => {
-        (record.items || []).forEach(id => used.add(id));
-      });
-      return used;
+    function itemIsActive(id) {
+      var item = findItemById(id);
+      return item && item.active !== false;
     }
 
-    function freezeAllRecordSnapshots(baseItems) {
-      const records = getRecords();
-      const itemMap = getItemMap(baseItems);
-      let changed = false;
-
-      Object.values(records).forEach(record => {
-        if (!record || typeof record !== "object") return;
-        if (!record.itemSnapshots) record.itemSnapshots = {};
-        (record.items || []).forEach(id => {
-          if (!record.itemSnapshots[id]) {
-            const item = itemMap[id];
-            record.itemSnapshots[id] = {
-              title: item && item.title ? item.title : id,
-              desc: item && item.desc ? item.desc : ""
-            };
-            changed = true;
-          }
-        });
-      });
-
-      if (changed) setRecords(records);
+    function itemUsedInRecords(itemId, records) {
+      var dates = Object.keys(records);
+      for (var i = 0; i < dates.length; i++) {
+        var record = records[dates[i]];
+        if (record && Array.isArray(record.items) && includes(record.items, itemId)) return true;
+      }
+      return false;
     }
 
     function countByItem(records) {
-      const counts = {};
-      Object.values(records).forEach(record => {
-        (record.items || []).forEach(id => {
-          counts[id] = (counts[id] || 0) + 1;
-        });
-      });
+      var counts = {};
+      var dates = Object.keys(records);
+      for (var i = 0; i < dates.length; i++) {
+        var record = records[dates[i]];
+        var recordItems = record && Array.isArray(record.items) ? record.items : [];
+        for (var j = 0; j < recordItems.length; j++) {
+          var id = recordItems[j];
+          counts[id] = counts[id] ? counts[id] + 1 : 1;
+        }
+      }
       return counts;
     }
 
@@ -748,206 +773,249 @@
       if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title) {
         return record.itemSnapshots[id].title;
       }
-      const item = items.find(candidate => candidate.id === id);
+      var item = findItemById(id);
       return item && item.title ? item.title : id;
     }
 
+    function getRecordItemDesc(record, id) {
+      if (record && record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].desc) {
+        return record.itemSnapshots[id].desc;
+      }
+      var item = findItemById(id);
+      return item && item.desc ? item.desc : "";
+    }
+
+    function ensureSnapshots(records) {
+      var changed = false;
+      var dates = Object.keys(records);
+      for (var i = 0; i < dates.length; i++) {
+        var record = records[dates[i]];
+        if (!record || typeof record !== "object") continue;
+        if (!record.itemSnapshots) record.itemSnapshots = {};
+        var recordItems = Array.isArray(record.items) ? record.items : [];
+        for (var j = 0; j < recordItems.length; j++) {
+          var id = recordItems[j];
+          if (!record.itemSnapshots[id]) {
+            record.itemSnapshots[id] = {
+              title: getRecordItemTitle(record, id),
+              desc: getRecordItemDesc(record, id)
+            };
+            changed = true;
+          }
+        }
+      }
+      if (changed) setRecords(records);
+    }
+
     function renderCheckList() {
-      const activeItems = getActiveItems();
+      var activeItems = getActiveItems();
       checkList.innerHTML = "";
 
       if (activeItems.length === 0) {
-        checkList.innerHTML = `<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>`;
+        checkList.innerHTML = '<div class="empty">表示中の記録項目がありません。<br>「項目を変更する」から項目を追加、または表示に戻してください。</div>';
         return;
       }
 
-      activeItems.forEach(item => {
-        const row = document.createElement("div");
+      for (var i = 0; i < activeItems.length; i++) {
+        var item = activeItems[i];
+        var row = document.createElement("div");
         row.className = "check-item";
-        row.dataset.id = item.id;
-        row.innerHTML = `
-          <div class="box"></div>
-          <div>
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            <div class="item-desc">${escapeHtml(item.desc)}</div>
-          </div>
-        `;
-        row.addEventListener("click", () => {
-          if (selectedItems.has(item.id)) selectedItems.delete(item.id);
-          else selectedItems.add(item.id);
+        row.setAttribute("data-id", item.id);
+        row.innerHTML = '<div class="box"></div><div><div class="item-title">' + escapeHtml(item.title) + '</div><div class="item-desc">' + escapeHtml(item.desc) + '</div></div>';
+        row.onclick = function () {
+          var id = this.getAttribute("data-id");
+          if (includes(selectedItems, id)) {
+            selectedItems = selectedItems.filter(function (itemId) { return itemId !== id; });
+          } else {
+            selectedItems.push(id);
+          }
           syncCheckVisuals();
-        });
+        };
         checkList.appendChild(row);
-      });
+      }
       syncCheckVisuals();
     }
 
     function syncCheckVisuals() {
-      document.querySelectorAll(".check-item").forEach(row => {
-        const isChecked = selectedItems.has(row.dataset.id);
-        row.classList.toggle("checked", isChecked);
-        row.querySelector(".box").textContent = isChecked ? "✓" : "";
-      });
+      var rows = document.querySelectorAll(".check-item");
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var id = row.getAttribute("data-id");
+        var checked = includes(selectedItems, id);
+        if (checked) row.classList.add("checked");
+        else row.classList.remove("checked");
+        var box = row.querySelector(".box");
+        if (box) box.textContent = checked ? "✓" : "";
+      }
     }
 
     function loadDateRecord() {
-      const records = getRecords();
-      const record = records[recordDate.value];
-      const activeIds = new Set(getActiveItems().map(item => item.id));
-      selectedItems = new Set(((record && record.items) || []).filter(id => activeIds.has(id)));
+      var records = getRecords();
+      var record = records[recordDate.value];
+      selectedItems = [];
+      if (record && Array.isArray(record.items)) {
+        for (var i = 0; i < record.items.length; i++) {
+          if (itemIsActive(record.items[i])) selectedItems.push(record.items[i]);
+        }
+      }
       memo.value = record && record.memo ? record.memo : "";
       syncCheckVisuals();
       renderDashboard();
     }
 
     function getPeriodDates() {
-      const base = parseDate(recordDate.value || todayString());
-      const days = currentPeriod === "day" ? 1 : currentPeriod === "week" ? 7 : 30;
-      const dates = [];
-      for (let i = days - 1; i >= 0; i--) dates.push(formatDate(addDays(base, -i)));
-      return dates;
+      var base = parseDate(recordDate.value || todayString());
+      var days = currentPeriod === "day" ? 1 : currentPeriod === "week" ? 7 : 30;
+      var result = [];
+      for (var i = days - 1; i >= 0; i--) result.push(formatDate(addDays(base, -i)));
+      return result;
     }
 
     function getDashboardItems(periodRecords) {
-      const result = [...getActiveItems()];
-      const addedIds = new Set(result.map(item => item.id));
+      var result = getActiveItems().slice();
+      var addedIds = result.map(function (item) { return item.id; });
 
-      periodRecords.forEach(record => {
-        (record.items || []).forEach(id => {
-          if (addedIds.has(id)) return;
-          const currentItem = items.find(item => item.id === id);
-          const snapshot = record.itemSnapshots && record.itemSnapshots[id] ? record.itemSnapshots[id] : null;
+      for (var i = 0; i < periodRecords.length; i++) {
+        var record = periodRecords[i];
+        var recordItems = record && Array.isArray(record.items) ? record.items : [];
+        for (var j = 0; j < recordItems.length; j++) {
+          var id = recordItems[j];
+          if (includes(addedIds, id)) continue;
           result.push({
-            id,
-            title: snapshot && snapshot.title ? snapshot.title : currentItem && currentItem.title ? currentItem.title : id,
-            desc: snapshot && snapshot.desc ? snapshot.desc : currentItem && currentItem.desc ? currentItem.desc : "",
+            id: id,
+            title: getRecordItemTitle(record, id),
+            desc: getRecordItemDesc(record, id),
             active: false
           });
-          addedIds.add(id);
-        });
-      });
-
+          addedIds.push(id);
+        }
+      }
       return result;
     }
 
     function renderDashboard() {
-      const records = getRecords();
-      const dates = getPeriodDates();
-      const periodRecords = dates.map(date => records[date] || { items: [] });
-      const dashboardItems = getDashboardItems(periodRecords);
-      const displayIds = new Set(dashboardItems.map(item => item.id));
-      const possibleChecks = dates.length * Math.max(dashboardItems.length, 1);
-      const total = periodRecords.reduce((sum, record) => sum + (record.items || []).filter(id => displayIds.has(id)).length, 0);
-      const rate = Math.round((total / possibleChecks) * 100);
+      var records = getRecords();
+      var dates = getPeriodDates();
+      var periodRecords = [];
+      for (var i = 0; i < dates.length; i++) periodRecords.push(records[dates[i]] || { items: [] });
 
-      overallRate.textContent = `${rate}%`;
+      var dashboardItems = getDashboardItems(periodRecords);
+      var displayIds = dashboardItems.map(function (item) { return item.id; });
+      var total = 0;
+
+      for (var r = 0; r < periodRecords.length; r++) {
+        var recordItems = periodRecords[r] && Array.isArray(periodRecords[r].items) ? periodRecords[r].items : [];
+        for (var k = 0; k < recordItems.length; k++) {
+          if (includes(displayIds, recordItems[k])) total++;
+        }
+      }
+
+      var possibleChecks = dates.length * Math.max(dashboardItems.length, 1);
+      var rate = Math.round((total / possibleChecks) * 100);
+      overallRate.textContent = rate + "%";
       totalChecks.textContent = String(total);
       periodLabel.textContent = currentPeriod === "day" ? "選択日" : currentPeriod === "week" ? "選択日までの7日間" : "選択日までの30日間";
 
       bars.innerHTML = "";
       if (dashboardItems.length === 0) {
-        bars.innerHTML = `<div class="empty">表示できる項目がありません。</div>`;
+        bars.innerHTML = '<div class="empty">表示できる項目がありません。</div>';
       } else {
-        dashboardItems.forEach(item => {
-          const checkedDays = periodRecords.filter(record => (record.items || []).includes(item.id)).length;
-          const itemRate = Math.round((checkedDays / dates.length) * 100);
-          const row = document.createElement("div");
+        for (var b = 0; b < dashboardItems.length; b++) {
+          var item = dashboardItems[b];
+          var checkedDays = 0;
+          for (var d = 0; d < periodRecords.length; d++) {
+            var itemsInRecord = periodRecords[d] && Array.isArray(periodRecords[d].items) ? periodRecords[d].items : [];
+            if (includes(itemsInRecord, item.id)) checkedDays++;
+          }
+          var itemRate = Math.round((checkedDays / dates.length) * 100);
+          var row = document.createElement("div");
           row.className = "bar-row";
-          row.innerHTML = `
-            <div class="bar-top">
-              <div class="bar-name">${escapeHtml(item.title)}${item.active === false ? `<span class="past-label">過去項目</span>` : ""}</div>
-              <div class="bar-value">${checkedDays}/${dates.length}日・${itemRate}%</div>
-            </div>
-            <div class="bar-track"><div class="bar-fill" style="width:${itemRate}%"></div></div>
-          `;
+          row.innerHTML = '<div class="bar-top"><div class="bar-name">' + escapeHtml(item.title) + (item.active === false ? '<span class="past-label">過去項目</span>' : '') + '</div><div class="bar-value">' + checkedDays + '/' + dates.length + '日・' + itemRate + '%</div></div><div class="bar-track"><div class="bar-fill" style="width:' + itemRate + '%"></div></div>';
           bars.appendChild(row);
-        });
+        }
       }
-
       renderHistory(records);
     }
 
     function renderHistory(records) {
-      const entries = Object.entries(records).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 8);
+      var entries = Object.keys(records).sort().reverse().slice(0, 8);
 
       if (entries.length === 0) {
-        history.innerHTML = `<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>`;
+        history.innerHTML = '<div class="empty">まだ記録がありません。<br>まずは今日の状況を1つだけチェックして保存してください。</div>';
         return;
       }
 
       history.innerHTML = "";
-      entries.forEach(([date, record]) => {
-        const names = (record.items || []).map(id => getRecordItemTitle(record, id));
-        const div = document.createElement("div");
-        div.className = "history-item";
-        div.innerHTML = `
-          <div class="history-date">${date}</div>
-          <div class="history-text">${names.length ? names.map(escapeHtml).join(" / ") : "チェックなし"}</div>
-          ${record.memo ? `<div class="history-text">メモ：${escapeHtml(record.memo)}</div>` : ""}
-        `;
-        history.appendChild(div);
-      });
-    }
+      for (var i = 0; i < entries.length; i++) {
+        var date = entries[i];
+        var record = records[date];
+        var names = [];
+        var recordItems = record && Array.isArray(record.items) ? record.items : [];
+        for (var j = 0; j < recordItems.length; j++) names.push(getRecordItemTitle(record, recordItems[j]));
 
-    function escapeHtml(text) {
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        var div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = '<div class="history-date">' + escapeHtml(date) + '</div><div class="history-text">' + (names.length ? names.map(escapeHtml).join(" / ") : "チェックなし") + '</div>' + (record && record.memo ? '<div class="history-text">メモ：' + escapeHtml(record.memo) + '</div>' : '');
+        history.appendChild(div);
+      }
     }
 
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 1800);
+      setTimeout(function () { toast.classList.remove("show"); }, 1800);
     }
 
     function showThresholdAlert(triggeredItems) {
-      if (triggeredItems.length === 0) return;
+      if (!triggeredItems || triggeredItems.length === 0) return;
       alertList.innerHTML = "";
-      triggeredItems.forEach(({ title, count }) => {
-        const li = document.createElement("li");
-        li.textContent = `${title}：累計${count}回`;
+      for (var i = 0; i < triggeredItems.length; i++) {
+        var li = document.createElement("li");
+        li.textContent = triggeredItems[i].title + "：累計" + triggeredItems[i].count + "回";
         alertList.appendChild(li);
-      });
+      }
       alertModal.classList.add("show");
     }
 
     function saveRecord() {
-      const date = recordDate.value || todayString();
-      const records = getRecords();
-      const beforeCounts = countByItem(records);
-      const existingRecord = records[date] || { items: [], itemSnapshots: {} };
-      const activeIds = new Set(getActiveItems().map(item => item.id));
-      const preservedOldItems = (existingRecord.items || []).filter(id => !activeIds.has(id));
-      const finalItems = Array.from(new Set([...preservedOldItems, ...Array.from(selectedItems)]));
-      const itemMap = getItemMap(items);
-      const itemSnapshots = { ...(existingRecord.itemSnapshots || {}) };
+      var date = recordDate.value || todayString();
+      var records = getRecords();
+      var beforeCounts = countByItem(records);
+      var existingRecord = records[date] || { items: [], itemSnapshots: {} };
+      var preservedOldItems = [];
+      var oldItems = existingRecord && Array.isArray(existingRecord.items) ? existingRecord.items : [];
+      for (var i = 0; i < oldItems.length; i++) {
+        if (!itemIsActive(oldItems[i])) preservedOldItems.push(oldItems[i]);
+      }
 
-      finalItems.forEach(id => {
-        if (!itemSnapshots[id]) {
-          const item = itemMap[id];
-          itemSnapshots[id] = {
-            title: item && item.title ? item.title : id,
-            desc: item && item.desc ? item.desc : ""
-          };
+      var finalItems = unique(preservedOldItems.concat(selectedItems));
+      var snapshots = existingRecord.itemSnapshots || {};
+      for (var j = 0; j < finalItems.length; j++) {
+        var id = finalItems[j];
+        if (!snapshots[id]) {
+          var item = findItemById(id);
+          snapshots[id] = { title: item && item.title ? item.title : id, desc: item && item.desc ? item.desc : "" };
         }
-      });
+      }
 
       records[date] = {
         items: finalItems,
-        itemSnapshots,
+        itemSnapshots: snapshots,
         memo: memo.value.trim(),
         updatedAt: new Date().toISOString()
       };
       setRecords(records);
 
-      const afterCounts = countByItem(records);
-      const triggered = items
-        .map(item => ({ title: item.title, before: beforeCounts[item.id] || 0, count: afterCounts[item.id] || 0 }))
-        .filter(item => item.count > item.before && item.count >= 10 && item.count % 10 === 0);
+      var afterCounts = countByItem(records);
+      var triggered = [];
+      for (var k = 0; k < items.length; k++) {
+        var itemObj = items[k];
+        var before = beforeCounts[itemObj.id] || 0;
+        var after = afterCounts[itemObj.id] || 0;
+        if (after > before && after >= 10 && after % 10 === 0) {
+          triggered.push({ title: itemObj.title, count: after });
+        }
+      }
 
       showToast("保存しました");
       showThresholdAlert(triggered);
@@ -955,188 +1023,235 @@
     }
 
     function clearCurrentDay() {
-      const records = getRecords();
+      var records = getRecords();
       delete records[recordDate.value];
       setRecords(records);
-      selectedItems = new Set();
+      selectedItems = [];
       memo.value = "";
       syncCheckVisuals();
       renderDashboard();
       showToast("この日の記録を削除しました");
     }
 
+    function readEditorValues() {
+      var editors = itemEditorList.querySelectorAll(".item-editor");
+      for (var i = 0; i < editors.length; i++) {
+        var titleInput = editors[i].querySelector("input[data-field='title']");
+        var descInput = editors[i].querySelector("textarea[data-field='desc']");
+        if (editingItems[i]) {
+          editingItems[i].title = titleInput ? titleInput.value : editingItems[i].title;
+          editingItems[i].desc = descInput ? descInput.value : editingItems[i].desc;
+        }
+      }
+    }
+
     function renderItemEditor() {
       itemEditorList.innerHTML = "";
-      editingItems.forEach((item, index) => {
-        const div = document.createElement("div");
+      for (var i = 0; i < editingItems.length; i++) {
+        var item = editingItems[i];
+        var div = document.createElement("div");
         div.className = "item-editor";
-        div.innerHTML = `
-          <div class="editor-header">
-            <span class="status-badge ${item.active === false ? "off" : ""}">${item.active === false ? "非表示" : "表示中"}</span>
-            <button class="mini-btn" data-action="toggle" data-index="${index}">${item.active === false ? "表示に戻す" : "非表示にする"}</button>
-          </div>
-          <label class="editor-label">項目名
-            <input type="text" data-field="title" data-index="${index}" value="${escapeHtml(item.title)}" />
-          </label>
-          <label class="editor-label">説明
-            <textarea data-field="desc" data-index="${index}">${escapeHtml(item.desc)}</textarea>
-          </label>
-        `;
+        div.innerHTML = '<div class="editor-header"><span class="status-badge ' + (item.active === false ? 'off' : '') + '">' + (item.active === false ? '非表示' : '表示中') + '</span><button type="button" class="mini-btn" data-index="' + i + '">' + (item.active === false ? '表示に戻す' : '非表示にする') + '</button></div><label class="editor-label">項目名<input type="text" data-field="title" value="' + escapeHtml(item.title) + '" /></label><label class="editor-label">説明<textarea data-field="desc">' + escapeHtml(item.desc) + '</textarea></label>';
         itemEditorList.appendChild(div);
-      });
+      }
+
+      var buttons = itemEditorList.querySelectorAll("button[data-index]");
+      for (var j = 0; j < buttons.length; j++) {
+        buttons[j].onclick = function () {
+          readEditorValues();
+          var index = Number(this.getAttribute("data-index"));
+          editingItems[index].active = editingItems[index].active === false ? true : false;
+          renderItemEditor();
+        };
+      }
     }
 
-    function openItemEditor() {
-      freezeAllRecordSnapshots(items);
-      editingItems = JSON.parse(JSON.stringify(items));
+    function openItemSettings() {
+      try {
+        var records = getRecords();
+        ensureSnapshots(records);
+        editingItems = JSON.parse(JSON.stringify(items));
+        renderItemEditor();
+        itemModal.classList.add("show");
+      } catch (error) {
+        alert("項目変更画面を開けませんでした。ページを再読み込みしてから、もう一度お試しください。原因: " + error.message);
+      }
+    }
+
+    function addNewItem() {
+      readEditorValues();
+      editingItems.push({ id: makeItemId(), title: "新しい項目", desc: "", active: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       renderItemEditor();
-      itemModal.classList.add("show");
-    }
-
-    function readEditorValues() {
-      itemEditorList.querySelectorAll("input[data-field], textarea[data-field]").forEach(input => {
-        const index = Number(input.dataset.index);
-        const field = input.dataset.field;
-        editingItems[index][field] = input.value;
-      });
     }
 
     function saveItemChanges() {
       readEditorValues();
-      freezeAllRecordSnapshots(items);
+      var records = getRecords();
+      ensureSnapshots(records);
+      records = getRecords();
+      var nextItems = [];
+      var now = new Date().toISOString();
 
-      const records = getRecords();
-      const usedIds = getUsedItemIds(records);
-      const oldById = getItemMap(items);
-      const nextItems = [];
-      const addedOldIds = new Set();
-      const now = new Date().toISOString();
-
-      editingItems.forEach(raw => {
-        const edited = normalizeItem(raw);
-        const old = oldById[edited.id];
+      for (var i = 0; i < editingItems.length; i++) {
+        var edited = normalizeItem(editingItems[i]);
+        var old = null;
+        for (var j = 0; j < items.length; j++) {
+          if (items[j].id === edited.id) old = items[j];
+        }
 
         if (!old) {
-          nextItems.push({ ...edited, id: edited.id || makeItemId(), createdAt: now, updatedAt: now });
-          return;
+          edited.createdAt = now;
+          edited.updatedAt = now;
+          nextItems.push(edited);
+          continue;
         }
 
-        const textChanged = old.title !== edited.title || old.desc !== edited.desc;
-        const hasPastRecords = usedIds.has(old.id);
+        var textChanged = old.title !== edited.title || old.desc !== edited.desc;
+        var used = itemUsedInRecords(old.id, records);
 
-        if (textChanged && hasPastRecords) {
-          if (!addedOldIds.has(old.id)) {
-            nextItems.push({ ...old, active: false, updatedAt: now });
-            addedOldIds.add(old.id);
-          }
-          nextItems.push({
-            id: makeItemId(),
-            title: edited.title,
-            desc: edited.desc,
-            active: edited.active,
-            createdAt: now,
-            updatedAt: now
-          });
+        if (textChanged && used) {
+          var oldCopy = normalizeItem(old);
+          oldCopy.active = false;
+          oldCopy.updatedAt = now;
+          nextItems.push(oldCopy);
+
+          nextItems.push({ id: makeItemId(), title: edited.title, desc: edited.desc, active: edited.active, createdAt: now, updatedAt: now });
         } else {
-          nextItems.push({ ...old, title: edited.title, desc: edited.desc, active: edited.active, updatedAt: now });
+          edited.createdAt = old.createdAt || now;
+          edited.updatedAt = now;
+          nextItems.push(edited);
         }
-      });
+      }
 
-      items = nextItems.map(normalizeItem);
-      setItems(items);
+      setItems(nextItems);
       itemModal.classList.remove("show");
-      selectedItems = new Set(Array.from(selectedItems).filter(id => getActiveItems().some(item => item.id === id)));
+      selectedItems = selectedItems.filter(function (id) { return itemIsActive(id); });
       renderCheckList();
       renderDashboard();
       showToast("項目を反映しました");
     }
 
     function exportCsv() {
-      const records = getRecords();
-      const allItems = [...items];
-      const knownIds = new Set(allItems.map(item => item.id));
+      var records = getRecords();
+      var allItems = items.slice();
+      var knownIds = allItems.map(function (item) { return item.id; });
+      var dates = Object.keys(records);
 
-      Object.values(records).forEach(record => {
-        (record.items || []).forEach(id => {
-          if (!knownIds.has(id)) {
-            allItems.push({
-              id,
-              title: record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].title ? record.itemSnapshots[id].title : id,
-              desc: record.itemSnapshots && record.itemSnapshots[id] && record.itemSnapshots[id].desc ? record.itemSnapshots[id].desc : "",
-              active: false
-            });
-            knownIds.add(id);
+      for (var i = 0; i < dates.length; i++) {
+        var record = records[dates[i]];
+        var recordItems = record && Array.isArray(record.items) ? record.items : [];
+        for (var j = 0; j < recordItems.length; j++) {
+          var id = recordItems[j];
+          if (!includes(knownIds, id)) {
+            allItems.push({ id: id, title: getRecordItemTitle(record, id), desc: getRecordItemDesc(record, id), active: false });
+            knownIds.push(id);
           }
-        });
-      });
+        }
+      }
 
-      const header = ["date", ...allItems.map(item => item.title), "memo", "updatedAt"];
-      const rows = Object.entries(records)
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([date, record]) => {
-          const checked = new Set(record.items || []);
-          return [date, ...allItems.map(item => checked.has(item.id) ? "1" : "0"), record.memo || "", record.updatedAt || ""];
-        });
+      var header = ["date"];
+      for (var h = 0; h < allItems.length; h++) header.push(allItems[h].title);
+      header.push("memo");
+      header.push("updatedAt");
 
-      const csv = [header, ...rows]
-        .map(row => row.map(value => `"${String(value).replace(/\"/g, '\"\"')}"`).join(","))
-        .join("
-");
+      var rows = [header];
+      dates.sort();
+      for (var d = 0; d < dates.length; d++) {
+        var date = dates[d];
+        var rec = records[date];
+        var checked = rec && Array.isArray(rec.items) ? rec.items : [];
+        var row = [date];
+        for (var c = 0; c < allItems.length; c++) row.push(includes(checked, allItems[c].id) ? "1" : "0");
+        row.push(rec && rec.memo ? rec.memo : "");
+        row.push(rec && rec.updatedAt ? rec.updatedAt : "");
+        rows.push(row);
+      }
 
-      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      var csvLines = [];
+      for (var r = 0; r < rows.length; r++) {
+        var csvRow = [];
+        for (var col = 0; col < rows[r].length; col++) {
+          csvRow.push('"' + String(rows[r][col]).replace(/"/g, '""') + '"');
+        }
+        csvLines.push(csvRow.join(","));
+      }
+
+      var blob = new Blob(["\ufeff" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
       a.href = url;
-      a.download = `勤務環境ログ_${todayString()}.csv`;
+      a.download = "勤務環境ログ_" + todayString() + ".csv";
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        currentPeriod = tab.dataset.period;
-        tabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        renderDashboard();
-      });
-    });
+    function closeItemModal() {
+      itemModal.classList.remove("show");
+    }
 
-    itemEditorList.addEventListener("click", event => {
-      const button = event.target.closest("button[data-action='toggle']");
-      if (!button) return;
-      readEditorValues();
-      const index = Number(button.dataset.index);
-      editingItems[index].active = editingItems[index].active === false;
-      renderItemEditor();
-    });
+    function init() {
+      recordDate = document.getElementById("recordDate");
+      checkList = document.getElementById("checkList");
+      memo = document.getElementById("memo");
+      saveBtn = document.getElementById("saveBtn");
+      clearDayBtn = document.getElementById("clearDayBtn");
+      overallRate = document.getElementById("overallRate");
+      totalChecks = document.getElementById("totalChecks");
+      bars = document.getElementById("bars");
+      history = document.getElementById("history");
+      periodLabel = document.getElementById("periodLabel");
+      toast = document.getElementById("toast");
+      alertModal = document.getElementById("alertModal");
+      alertList = document.getElementById("alertList");
+      closeModalBtn = document.getElementById("closeModalBtn");
+      exportBtn = document.getElementById("exportBtn");
+      itemModal = document.getElementById("itemModal");
+      itemEditorList = document.getElementById("itemEditorList");
+      addItemBtn = document.getElementById("addItemBtn");
+      cancelItemsBtn = document.getElementById("cancelItemsBtn");
+      saveItemsBtn = document.getElementById("saveItemsBtn");
 
-    addItemBtn.addEventListener("click", () => {
-      readEditorValues();
-      editingItems.push({
-        id: makeItemId(),
-        title: "新しい項目",
-        desc: "",
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      renderItemEditor();
-    });
+      items = getItems();
+      ensureSnapshots(getRecords());
 
-    recordDate.addEventListener("change", loadDateRecord);
-    saveBtn.addEventListener("click", saveRecord);
-    clearDayBtn.addEventListener("click", clearCurrentDay);
-    closeModalBtn.addEventListener("click", () => alertModal.classList.remove("show"));
-    alertModal.addEventListener("click", event => { if (event.target === alertModal) alertModal.classList.remove("show"); });
-    openItemSettingsBtn.addEventListener("click", openItemEditor);
-    cancelItemsBtn.addEventListener("click", () => itemModal.classList.remove("show"));
-    saveItemsBtn.addEventListener("click", saveItemChanges);
-    exportBtn.addEventListener("click", exportCsv);
+      recordDate.value = todayString();
+      renderCheckList();
+      loadDateRecord();
 
-    recordDate.value = todayString();
-    freezeAllRecordSnapshots(items);
-    renderCheckList();
-    loadDateRecord();
+      recordDate.onchange = loadDateRecord;
+      saveBtn.onclick = saveRecord;
+      clearDayBtn.onclick = clearCurrentDay;
+      closeModalBtn.onclick = function () { alertModal.classList.remove("show"); };
+      exportBtn.onclick = exportCsv;
+      addItemBtn.onclick = addNewItem;
+      cancelItemsBtn.onclick = closeItemModal;
+      saveItemsBtn.onclick = saveItemChanges;
+
+      var periodButtons = document.querySelectorAll(".tab[data-period]");
+      for (var i = 0; i < periodButtons.length; i++) {
+        periodButtons[i].onclick = function () {
+          currentPeriod = this.getAttribute("data-period");
+          for (var j = 0; j < periodButtons.length; j++) periodButtons[j].classList.remove("active");
+          this.classList.add("active");
+          renderDashboard();
+        };
+      }
+
+      alertModal.onclick = function (event) {
+        if (event.target === alertModal) alertModal.classList.remove("show");
+      };
+      itemModal.onclick = function (event) {
+        if (event.target === itemModal) itemModal.classList.remove("show");
+      };
+    }
+
+    window.openItemSettings = openItemSettings;
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
