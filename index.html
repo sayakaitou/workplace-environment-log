@@ -926,8 +926,10 @@ function enterAppAfterLogin(user) {
       return item && item.desc ? item.desc : "";
     }
 
-    function renderCheckList() {
-      var activeItems = getActiveItems();
+function renderCheckList() {
+  var activeItems = getActiveItems().filter(function (item) {
+    return item && item.title && String(item.title).trim() !== "";
+  });
       elements.checkList.innerHTML = "";
       if (!dataReady) {
         elements.checkList.innerHTML = '<div class="empty">同期データを読み込み中です。</div>';
