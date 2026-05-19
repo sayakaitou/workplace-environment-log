@@ -852,17 +852,16 @@ function enterAppAfterLogin(user) {
         .replace(/'/g, "&#039;");
     }
 
-    function normalizeItem(item) {
-      return {
-        id: item && item.id ? String(item.id) : makeItemId(),
-        title: item && item.title ? String(item.title) : "名称未設定",
-        desc: item && item.desc ? String(item.desc) : "",
-        active: item && item.active === false ? false : true,
-        createdAt: item && item.createdAt ? item.createdAt : new Date().toISOString(),
-        updatedAt: item && item.updatedAt ? item.updatedAt : new Date().toISOString()
-      };
-    }
-
+function normalizeItem(item) {
+  return {
+    id: item && item.id ? String(item.id) : makeItemId(),
+    title: item && typeof item.title !== "undefined" ? String(item.title).trim() : "",
+    desc: item && item.desc ? String(item.desc) : "",
+    active: item && item.active === false ? false : true,
+    createdAt: item && item.createdAt ? item.createdAt : new Date().toISOString(),
+    updatedAt: item && item.updatedAt ? item.updatedAt : new Date().toISOString()
+  };
+}
     function normalizeItems(list) {
       var result = [];
       if (!Array.isArray(list)) return result;
@@ -928,7 +927,8 @@ function enterAppAfterLogin(user) {
 
 function renderCheckList() {
   var activeItems = getActiveItems().filter(function (item) {
-    return item && item.title && String(item.title).trim() !== "";
+    var title = item && item.title ? String(item.title).trim() : "";
+    return title !== "" && title !== "名称未設定";
   });
       elements.checkList.innerHTML = "";
       if (!dataReady) {
